@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-"""This module contains some basic tools for input.
+"""This module contains some basic tools for input and usfull vars.
 """
 # Copyright 2015 Austin Fox
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
 
-_at_els = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na',
+at_els = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na',
            'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti',
            'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge',
            'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo',
@@ -15,7 +15,7 @@ _at_els = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na',
            'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf',
            'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb',
            'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U')
-_at_lines = ('Ka', 'Kb', 'Lg2', 'Lb3', 'Lb4', 'Lg1',
+at_lines = ('Ka', 'Kb', 'Lg2', 'Lb3', 'Lb4', 'Lg1',
             'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma')
 
 
@@ -52,9 +52,9 @@ def get_options(message, options=('Y', 'N'), default=None, count=False,
 
     """ options = 'lines', 'els', or any tuple of strings"""
     if options == 'lines':
-        options = _at_lines
+        options = at_lines
     if options == 'els':
-        options = _at_els
+        options = at_els
 
     stop = False
     while True:

@@ -31,12 +31,6 @@ class AtomicElement(object):
             self.line = line
             check = at_lines.index(line)
 
-        # Electron shell e.g. K, L1, M1, N1
-        self.shell = self.get_shell()
-        # Fluorescence Yields
-        self.omega = self.get_omega()
-        # Number of electrons in the ionized shell.
-        self.znl = self.get_znl()
         self.setup_vars()
 
     def get_data(self, z, dat):
@@ -63,8 +57,14 @@ class AtomicElement(object):
         return value
 
     def setup_vars(self):
-        """Get data from table for element"""
+        """Get element data"""
 
+        # Electron shell e.g. K, L1, M1, N1
+        self.shell = self.get_shell()
+        # Fluorescence Yields
+        self.omega = self.get_omega()
+        # Number of electrons in the ionized shell.
+        self.znl = self.get_znl()
         with open('atomic_data.txt', 'r') as data_file:
             for row in data_file:
                 data = row.split("\t")
