@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""This module contains some basic tools for input and usfull vars.
+"""This module contains some basic tools for input, output and usful vars.
 """
 # Copyright 2015 Austin Fox
 # Program is distributed under the terms of the
@@ -98,7 +98,33 @@ def get_nums(message, maxi=10e10, mini=0, default=None):
             print "Oops!  That was no valid number.  Try again..."
     return out
 
+def get_string(message):
+    return raw_input(message)
+
+def out_data(header, data, width=10):
+    """print lists(matrix) as table with header of column width width
+    Formatted this way to make gui creation easier
+    """
+
+    if type(header) != list and type(header) != tuple:
+        raise ValueError('header must be of type list or tuple')
+    row_format ="{:^{width}}" * (len(header))
+    print row_format.format(*header, width = width)
+
+    if type(data) != list and type(data) != tuple:
+        raise ValueError('data must be of type list or tuple')
+    if type(data[0]) == list or type(data[0]) == tuple:
+        for row in data:
+            row_format ="{:^{width}}" * (len(row))
+            print row_format.format(*row, width = width)
+    else:
+            row_format ="{:^{width}}" * (len(data))
+            print row_format.format(*data, width = width)
+
+
 if __name__ == '__main__':
     # print yes_no("Q?")
     # print get_nums("test", 10, 0)
-    print get_options('el', 'els')
+    # print get_options('el', 'els')
+    out_data(('#', '#'), ((1, 1), (2, 2)))
+    out_data(('#', '#'), (1, 1), width=15)

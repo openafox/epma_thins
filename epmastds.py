@@ -9,7 +9,7 @@ A -- apple
 # GNU General Public License see ./License for more information.
 
 import readline  # nice line editor for inputs
-from basictools import yes_no, get_options, get_nums
+from basictools import yes_no, get_options, get_nums, out_data, get_string
 from get_data import lookup
 from wtfract import wtfract
 from atomic_element import AtomicElement
@@ -18,27 +18,29 @@ from atomic_element import AtomicElement
 class EpmaStd(object):
     """Containers for standard materials and their properties"""
 
-    def __init__(self):
-        self.name = raw_input('Enter standard name:')
+    def __init__(self, name=None):
+        if name is None:
+            self.name = get_string('Enter standard name:')
         self.els = []
         if not self.load_saved():
             self.new_std()
 
     def load_saved(self):
         # see if exist in std doc
+        reply = True
         with open('epmastds.txt', 'r') as data_file:
-            # stdnm \t nel \t el \t wtfr \t el \t wtfr....
             for row in data_file:
                 data = row.split("\t")
                 if self.name.upper() == data[0].upper():
                     # Confirm std selection
-                    print ('Element   Atomic Formula  X-Ray Line')
+                    header = ['Element', 'Atomic_Formula', 'X-Ray_Line']
+                    out = []
                     for j in range(1, len(data), 3):
-                        print ('%s\t  %s\t  %s' % (data[j], 
-                                                   round(float(data[j + 2]),
-                                                               5), 
-                                                   data[j + 1]))
-                    reply = yes_no('This standard ?:')
+                        out.append([data[j], round(float(data[j + 2]), 5), 
+                                    data[j + 1]])
+                    out_data(header, out, width = 15)
+                    reply = yes_no('Is this data correct for standard %s?:'
+                                    % self.name)
                     if reply is True:
                         for j in range(1, len(data), 3):
                             self.els.append(AtomicElement(data[j],  # name
@@ -46,9 +48,22 @@ class EpmaStd(object):
                                                           ))
                             self.els[-1].wtfract = data[j + 2]
                         return True
-                    else:
-                        self.name = raw_input('Enter standard name:')
-                        self.load_saved()
+                        # bounce out False using default reply 
+        if reply is False: 
+            reply = yes_no('Replace Saved Data?:')
+            if reply is True:
+                with open('epmastds.txt', 'r') as old_file,\
+                     open('epmastds.txt', 'w') as new_file:
+                    for row in old_file:
+                        data = row.split("\t")
+                        if self.name.upper() != data[0].upper():
+                            new_file.write(row)
+                self.new_std()
+                return True
+            else:
+                self.__init__()
+                return True
+                                
             # if no matches
             return False
 
