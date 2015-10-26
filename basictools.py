@@ -7,14 +7,14 @@
 
 
 at_els = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na',
-           'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti',
-           'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge',
-           'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo',
-           'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',
-           'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm',
-           'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf',
-           'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb',
-           'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U')
+          'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti',
+          'V', 'Cr', 'Mn', 'Fe', 'Co', 'Ni', 'Cu', 'Zn', 'Ga', 'Ge',
+          'As', 'Se', 'Br', 'Kr', 'Rb', 'Sr', 'Y', 'Zr', 'Nb', 'Mo',
+          'Tc', 'Ru', 'Rh', 'Pd', 'Ag', 'Cd', 'In', 'Sn', 'Sb', 'Te',
+          'I', 'Xe', 'Cs', 'Ba', 'La', 'Ce', 'Pr', 'Nd', 'Pm', 'Sm',
+          'Eu', 'Gd', 'Tb', 'Dy', 'Ho', 'Er', 'Tm', 'Yb', 'Lu', 'Hf',
+          'Ta', 'W', 'Re', 'Os', 'Ir', 'Pt', 'Au', 'Hg', 'Tl', 'Pb',
+          'Bi', 'Po', 'At', 'Rn', 'Fr', 'Ra', 'Ac', 'Th', 'Pa', 'U')
 at_lines = ('Ka', 'Kb', 'Lg2', 'Lb3', 'Lb4', 'Lg1',
             'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma')
 
@@ -48,7 +48,7 @@ def yes_no(prompt=None, default=True):
 
 
 def get_options(message, options=('Y', 'N'), default=None, count=False,
-                casesen = 'Capitalize'):
+                casesen='Capitalize'):
 
     """ options = 'lines', 'els', or any tuple of strings"""
     if options == 'lines':
@@ -78,16 +78,22 @@ def get_options(message, options=('Y', 'N'), default=None, count=False,
                 break
         if stop:
             break
-    if count == True:
+    if count is True:
         return num, var
     return var
 
 
-def get_nums(message, maxi=10e10, mini=0, default=None):
+def get_nums(message, maxi=10e10, mini=0, **kwargs):
+    """Get numbers from user and make sure it is in range
+    Keyword Arguments:
+    default -- value if just press enter i.e ''
+    zeroval -- replace 0 with this value
+    """
+
     while True:
         out = raw_input(message)
-        if default is not None and out == '':
-            out = default
+        if 'default' in kwargs and out == '':
+            out = kwargs['default']
         try:
             out = float(out)
             if out > maxi or out < mini:
@@ -95,11 +101,15 @@ def get_nums(message, maxi=10e10, mini=0, default=None):
             else:
                 break
         except ValueError:
-            print "Oops!  That was no valid number.  Try again..."
+            print "Oops!  That was not a valid number.  Try again..."
+    if 'zeroval' in kwargs and out == 0:
+        out = kwargs['zeroval']
     return out
+
 
 def get_string(message):
     return raw_input(message)
+
 
 def out_data(header, data, width=10):
     """print lists(matrix) as table with header of column width width
@@ -108,23 +118,27 @@ def out_data(header, data, width=10):
 
     if type(header) != list and type(header) != tuple:
         raise ValueError('header must be of type list or tuple')
-    row_format ="{:^{width}}" * (len(header))
-    print row_format.format(*header, width = width)
+    row_format = "{:^{width}}" * (len(header))
+    print row_format.format(*header, width=width)
 
     if type(data) != list and type(data) != tuple:
         raise ValueError('data must be of type list or tuple')
     if type(data[0]) == list or type(data[0]) == tuple:
         for row in data:
-            row_format ="{:^{width}}" * (len(row))
-            print row_format.format(*row, width = width)
+            row_format = "{:^{width}}" * (len(row))
+            print row_format.format(*row, width=width)
     else:
-            row_format ="{:^{width}}" * (len(data))
-            print row_format.format(*data, width = width)
+            row_format = "{:^{width}}" * (len(data))
+            print row_format.format(*data, width=width)
+
+
+def user_alert(message):
+    print message
 
 
 if __name__ == '__main__':
     # print yes_no("Q?")
-    # print get_nums("test", 10, 0)
+    print get_nums("test", default=1, zeroval=-1)
     # print get_options('el', 'els')
-    out_data(('#', '#'), ((1, 1), (2, 2)))
-    out_data(('#', '#'), (1, 1), width=15)
+    # out_data(('#', '#'), ((1, 1), (2, 2)))
+    # out_data(('#', '#'), (1, 1), width=15)
