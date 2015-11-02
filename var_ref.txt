@@ -42,9 +42,9 @@ Arguments:
     icase --
     rc --
     rx --
-    cnc --
-    adelta --
-    flmdepth --
+    cnc -- list of weight fractions
+    adelta -- layer thicknesses
+    flmdepth -- depth to surface of 
     ad --
     c1 --
 
