@@ -1,0 +1,82 @@
+Variables with definitions in () are orriginal vars
+
+Any help determining the def of unknow variables would be greatly helpful
+
+I only decided to start doing this after already putting a fair bit of time in
+so I am sure I am missing things...
+
+Arguments:
+    z -- Element Atomic Number
+    el -- Element Symbol (symb(1:2))
+    line -- X-Ray Emission Line ex. 'Ka' (symb(3:5))
+    opt -- Element options (symb(6:6))
+    shell -- electron shell (nedge, jedge)
+    mass -- Atomic Mass  (a, at, ax)
+    ecr -- Absorbtion edge [Kev]
+    exciter -- Electrons or ?? (X-Rays)
+    mode -- Film of Bulk
+
+    mac -- Mass Absorption Coeficient
+    absionrt -- Ionizations/Absorptions
+
+    From bastbeta
+    a --
+    beta --
+    g --
+    p --
+    f --
+    flag --
+
+    From PAP and related
+    delta -- ??
+    cnc -- ??
+    L -- ??
+    R -- ??
+    a -- ??
+    b -- ??
+    r -- ??
+    c -- ??
+    x -- ??
+    ad1 --
+    ad2 --
+    icase --
+    rc --
+    rx --
+    cnc --
+    adelta --
+    flmdepth --
+    ad --
+    c1 --
+
+    From effyld
+    xenrgy --??
+
+
+    stds0 -- list (element for element) std used
+    stds1 -- [el in std #, 0 - 2 (wtfr, z, mass), stdnumb)
+
+    # don't get why this is needed ds seperate var
+    stds2 -- [el sym in std, std num]
+
+    istd -- standart for wich element
+    ics -- # of standards
+    standrd --  satandard name list
+    ice -- number of companion elements
+
+counters:
+    nels -- number of elements
+    nlayers -- number of lines
+    voltages -- number of voltages used?? I always used more then 2 but this is
+    what it is limited to??
+
+Lists:
+    lines -- X-Ray Absorption Edges
+    els -- list of elemsnts
+    e0 -- list of energies for elements???  I am not sure I get this, what do
+    you enter when it asks?
+
+Arrays (Numpy): These are list I will have to make into numpy arrays for math
+    zs -- Atomic Numbers
+    ecrs -- Absorption Edges (ec)
+    masses -- Masses
+    nel -- Number of elements per layer
