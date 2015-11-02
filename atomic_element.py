@@ -6,10 +6,7 @@ container for elements and their properties
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
-
-import readline  # nice line editor for inputs
-from basictools import get_options, at_lines, at_els
-
+from basictools import get_options, at_els, user_alert
 
 
 class AtomicElement(object):
@@ -17,10 +14,8 @@ class AtomicElement(object):
 
     def __init__(self, name=None, line=None):
         if name is None and line is None:
-            self.z, self.name = get_options('Please enter Element Symbol:',
-                                            'els', count=True)
-            self.line = get_options('Please enter Element X-Ray Line '
-                                    '(Ka, Lg2, etc.):', 'lines')
+            # Elemet Name and Line
+            self.name, self.line, self.z = self.get_el_nd_ln()
         elif name is None or line is None:
             # warn programer if improper usage
             raise ValueError('Both or neither "name" and "line" must be '
@@ -29,9 +24,36 @@ class AtomicElement(object):
             self.name = name
             self.z = at_els.index(name.capitalize()) + 1
             self.line = line
-            check = at_lines.index(line)
+            ecr = self.get_data(self.z, self.line)
+            if ecr < 0:
+                """need to figure out how to make this ok for gui"""
+                user_alert('Invalid line for this element; try again:')
 
         self.setup_vars()
+
+    def get_el_nd_ln(self):
+
+        z, name = get_options('Please enter Element Symbol:',
+                              'els', count=True)
+        # make sure the selected line is valid
+        while True:
+            line = get_options('Please enter Element X-Ray Line '
+                               '(Ka, Lg2, etc.):', 'lines')
+            ecr = self.get_data(z, line)
+            if ecr > 0:
+                break
+            user_alert('Invalid line for this element; try again:')
+        return name, line, z
+
+    def get_opt(self):
+        """Options for analysis
+        s -- Determined by stoichiometry.
+        c -- analyzed with a compound std.
+        d -- analyzed by difference (bulk only).
+        E -- analyzed with pure element standard.
+        """
+        return get_options('Options((S)toic, (C)omp, (D)iff, (E)lem):',
+                           ['S', 'C', 'D', 'E'], 'C')
 
     def get_data(self, z, dat):
         """Return selected data for given element
@@ -42,7 +64,7 @@ class AtomicElement(object):
         Return:
         value -- floating point data (see atomic_data.txt for details)
         """
-        
+
         value = 0.0
         cols = ('z', 'Element', 'Mass', 'Kb', 'Ka', 'Lg2', 'Lb3', 'Lb4',
                 'Lg1', 'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma', 'rjump1',
@@ -73,27 +95,27 @@ class AtomicElement(object):
                 if self.z == int(data[0]):
 
                     # Element Mass
-                    self.mass = data[cols.index('Mass')]
+                    self.mass = float(data[cols.index('Mass')])
 
                     edge = float(data[cols.index(self.shell)])
 # Absorption Edge [KeV]
                     self.edge = edge if edge > 0.0 else 50000.0
 
 # Coster-Kronig Coefficients
-                    self.ck = float(
-                            data[cols.index(get_options('ck (c12, c13, c23):',
-                                                        ('c12', 'c13', 'c23'),
-                                                        casesen = 'Lower'
-                                                        ))])
+                    # self.ck = float(
+                    #        data[cols.index(get_options('ck (c12, c13, c23):',
+                    #                                    ('c12', 'c13', 'c23'),
+                    #                                    casesen = 'Lower'
+                    #                                    ))])
 
                     xray = float(data[cols.index(self.line)])
 # X-Ray Emmision Line Energy [KeV]
                     self.xray = xray if xray > 0.0 else 50000.0
 
-                    rjump = {'K': data[cols.index('rjump1')],
+                    rjump = {'K': float(data[cols.index('rjump1')]),
                              'L1': 1.17,
                              'L2': 1.39,
-                             'L3': data[cols.index('rjump4')],
+                             'L3': float(data[cols.index('rjump4')]),
                              'M1': 1.16,
                              'M2': 1.207,
                              'M3': 1.158,
@@ -177,6 +199,7 @@ if __name__ == '__main__':
     print 'electron shell', el.shell
     print 'fluorescence yields', el.omega
     print 'number of electrons in the ionized shell', el.znl
-    print 'coster-kronig coefficients', el.ck
+    # print 'coster-kronig coefficients', el.ck
+    # commented out for now, need to know how to choose which one
     print 'x-ray emmision line energy [KeV]', el.xray
     el = AtomicElement(name)

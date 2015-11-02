@@ -9,9 +9,8 @@ A -- apple
 # GNU General Public License see ./License for more information.
 
 import readline  # nice line editor for inputs
-from basictools import yes_no, get_options, get_nums, out_data, get_string
-from get_data import lookup
-from wtfract import wtfract
+from basictools import (yes_no, get_options, get_nums, out_data, get_string,
+                        wtfract)
 from atomic_element import AtomicElement
 
 
@@ -83,20 +82,20 @@ class EpmaStd(object):
                 if how.upper() == 'W':
                     self.els[-1].wtfract = get_nums('Weight Fraction:', 1)
                 else:
-                    fr.append(get_nums('Atomic Formula:', 100))
+                    self.els[-1].atform = get_nums('Atomic Formula:', 100)
                 print ("Entered so far: %s"
-                       % ' '.join([o.name for o in self.els]))
+                       % ' '.join([el.name for el in self.els]))
                 if not yes_no("Add another element? (Y/N)"):
                     break
             if how.upper() == 'A':
-                wtfracs = wtfract([o.name for o in self.els], fr, [count])
+                wtfracs = wtfract(self.els, [el.atform for el in self.els])
                 for x, _ in enumerate(wtfracs):
                     self.els[x].wtfrac = wtfracs[x]
                 print ('%s compound standard: els, weight fractions:'
                        % self.name)
             print "\t".join([self.els[x].name for x
                              in range(0, len(self.els))])
-            print "\t".join([str(round(o.wtfrac, 5)) for o in self.els])
+            print "\t".join([str(round(el.wtfrac, 5)) for el in self.els])
 
             if yes_no("Is this correct?\n(restarts if no)(Y/N):", False):
                 break

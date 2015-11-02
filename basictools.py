@@ -5,6 +5,8 @@
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
+import sys
+import numpy as np
 
 at_els = ('H', 'He', 'Li', 'Be', 'B', 'C', 'N', 'O', 'F', 'Ne', 'Na',
           'Mg', 'Al', 'Si', 'P', 'S', 'Cl', 'Ar', 'K', 'Ca', 'Sc', 'Ti',
@@ -136,9 +138,29 @@ def user_alert(message):
     print message
 
 
+def wtfract(els, form):
+    """Convert atomic formula to weight percent"""
+    cnc = []
+    form = np.asarray(form)
+    print form
+    masses = np.asarray([el.mass for el in els])
+    print masses
+    sum_mass = np.sum(masses*form)
+    print sum_mass
+    cnc = (masses*form)/sum_mass
+    return cnc
+
+
 if __name__ == '__main__':
     # print yes_no("Q?")
-    print get_nums("test", default=1, zeroval=-1)
+    # print get_nums("test", default=1, zeroval=-1)
     # print get_options('el', 'els')
     # out_data(('#', '#'), ((1, 1), (2, 2)))
     # out_data(('#', '#'), (1, 1), width=15)
+    from atomic_element import AtomicElement as AtEl
+    Si = AtEl('Si', 'Ka')
+    o = AtEl('O', 'Ka')
+    els = [Si, o]
+    form = [1, 2]
+    print wtfract(els, form)
+    print 28.0/(28+16*2)
