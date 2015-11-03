@@ -9,7 +9,8 @@ A -- apple
 # GNU General Public License see ./License for more information.
 
 import sys
-from basictools import get_nums
+from basictools import get_nums, yes_no, get_options
+from film_layer import FilmLayer
 
 
 class AnalysisSample(object):
@@ -39,10 +40,6 @@ class AnalysisSample(object):
             # List of film layers
             self.layers = self.get_layers([])
 
-        # iteration vars
-        self.i = 0
-        self.j = 0
-
     def get_layers(self, layers=[]):
         """Get new layers to add to the sample:
         Returns list of FilmLayer objects.
@@ -62,7 +59,7 @@ class AnalysisSample(object):
             reply = yes_no('Add another voltage?(Y/N):')
             if reply is False:
                 break
-        return voltages
+        return volts
 
     def check_volts(self):
         for layer, el in self:
@@ -77,19 +74,19 @@ class AnalysisSample(object):
                                       'lines')
                 el.setup_vars()
 
-    def get_toa():
+    def get_toa(self):
         """get take-off angle"""
-        self.toa = get_nums('Enter take-off angle (default=40 degrees):',
-                            90, 0, 40)
+        return get_nums('Enter take-off angle (default=40 degrees):',
+                        90, 0, 40)
 
-    def fixlayers():
+    def fixlayers(self):
         for i in range(0, len(self.els)):
             if i > 0:
                 mess = ('Fix composition and thickness of layer %d? (def=n):'
                         % i)
             if i == 0:
                 mess = '+Fix composition of substrate? (def=n):'
-            ifix[i] = yes_no(mess, False)
+            fix = yes_no(mess, False)
 
             if i > 0:
                 label = 'of layer %d' % i
@@ -97,24 +94,25 @@ class AnalysisSample(object):
                 label = 'of the substrate'
 
     def __iter__(self):
+        self.j = 0
+        self.i = len(self.layers) - 1
         return self
 
     def next(self):
-        nlays = len(self.layers)
-        lnel = len(self.layers[nlays-1].els)
+        layindex = self.i
         try:
             layer = self.layers[self.i]
             el = self.layers[self.i].els[self.j]
         except IndexError:
-            self.i = 0
-            self.j = 0
+            raise StopIteration
+        if self.i < 0:
             raise StopIteration
         if self.j == len(self.layers[self.i].els) - 1:
-            self.i = self.i + 1
+            self.i = self.i - 1
             self.j = 0
         else:
             self.j = self.j + 1
-        return layer, el
+        return layindex, layer, el
 
 
 if __name__ == '__main__':
@@ -126,5 +124,10 @@ if __name__ == '__main__':
     layer1 = FL(els=[Si, o], rho=2.65)
     layer2 = FL(els=[ti, o], rho=4.23)
     sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2])
-    for lay, el in sample:
-        print 'Element:', el.name, ' Mass', el.mass
+    print 'o'
+    for i, lay, el in sample:
+        print 'Element:', el.name, ' Mass', el.mass, 'layer', i
+    print ""
+    for i, lay, el in sample:
+        print 'Element:', el.name, 'Density', lay.rho, 'layer', i
+    
