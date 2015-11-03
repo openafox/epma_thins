@@ -51,6 +51,12 @@ class AnalysisSample(object):
                 break
         return layers
 
+    def get_layers_depth(self):
+        depth = 0.0
+        for i in range(len(self.layers), 0):
+            depth += self.layers[i].thick
+            self.layers[i].depth = depth
+ 
     def get_volts(self):
         """Get accelerating voltages"""
         volts = []
@@ -80,18 +86,15 @@ class AnalysisSample(object):
                         90, 0, 40)
 
     def fixlayers(self):
-        for i in range(0, len(self.els)):
+        for i in range(0, len(self.layers)):
             if i > 0:
                 mess = ('Fix composition and thickness of layer %d? (def=n):'
                         % i)
             if i == 0:
-                mess = '+Fix composition of substrate? (def=n):'
-            fix = yes_no(mess, False)
+                mess = 'Fix composition of substrate? (def=n):'
 
-            if i > 0:
-                label = 'of layer %d' % i
-            else:
-                label = 'of the substrate'
+            self.layers[i].fix = yes_no(mess, False)
+            self.layers[i].fixlayer()
 
     def __iter__(self):
         self.j = 0
