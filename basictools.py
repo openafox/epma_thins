@@ -21,6 +21,30 @@ at_lines = ('Ka', 'Kb', 'Lg2', 'Lb3', 'Lb4', 'Lg1',
             'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma')
 
 
+def get_data(z, dat):
+    """Return selected data for given element
+
+    Keyword arguments:
+    z -- Element Atomic Number
+    dat -- desired data
+    Return:
+    value -- floating point data (see atomic_data.txt for details)
+    """
+
+    value = 0.0
+    cols = ('z', 'Element', 'Mass', 'Kb', 'Ka', 'Lg2', 'Lb3', 'Lb4',
+            'Lg1', 'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma', 'rjump1',
+            'rjump4', 'K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4',
+            'M5', 'N1', 'N2', 'N3', 'c12', 'c13', 'c23', 'l1', 'l2', 'l3')
+    col = cols.index(dat)
+    with open('atomic_data.txt', 'r') as data_file:
+        for row in data_file:
+            data = row.split("\t")
+            if z == int(data[0]):
+                value = float(data[col])
+    return value
+
+
 def yes_no(prompt=None, default=True):
     """return True or False based on user input
     default is returned if user input is ''

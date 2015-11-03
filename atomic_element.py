@@ -6,7 +6,7 @@ container for elements and their properties
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
-from basictools import get_options, at_els, user_alert
+from basictools import get_options, at_els, user_alert, get_data
 
 
 class AtomicElement(object):
@@ -24,7 +24,7 @@ class AtomicElement(object):
             self.name = name
             self.z = at_els.index(name.capitalize()) + 1
             self.line = line
-            ecr = self.get_data(self.z, self.line)
+            ecr = get_data(self.z, self.line)
             if ecr < 0:
                 """need to figure out how to make this ok for gui"""
                 user_alert('Invalid line for this element; try again:')
@@ -39,7 +39,7 @@ class AtomicElement(object):
         while True:
             line = get_options('Please enter Element X-Ray Line '
                                '(Ka, Lg2, etc.):', 'lines')
-            ecr = self.get_data(z, line)
+            ecr = get_data(z, line)
             if ecr > 0:
                 break
             user_alert('Invalid line for this element; try again:')
@@ -54,29 +54,6 @@ class AtomicElement(object):
         """
         return get_options('Options((S)toic, (C)omp, (D)iff, (E)lem):',
                            ['S', 'C', 'D', 'E'], 'C')
-
-    def get_data(self, z, dat):
-        """Return selected data for given element
-
-        Keyword arguments:
-        z -- Element Atomic Number
-        dat -- desired data
-        Return:
-        value -- floating point data (see atomic_data.txt for details)
-        """
-
-        value = 0.0
-        cols = ('z', 'Element', 'Mass', 'Kb', 'Ka', 'Lg2', 'Lb3', 'Lb4',
-                'Lg1', 'Lb1', 'Lb2', 'La1', 'Mg', 'Mb', 'Ma', 'rjump1',
-                'rjump4', 'K', 'L1', 'L2', 'L3', 'M1', 'M2', 'M3', 'M4',
-                'M5', 'N1', 'N2', 'N3', 'c12', 'c13', 'c23', 'l1', 'l2', 'l3')
-        col = cols.index(dat)
-        with open('atomic_data.txt', 'r') as data_file:
-            for row in data_file:
-                data = row.split("\t")
-                if z == int(data[0]):
-                    value = float(data[col])
-        return value
 
     def setup_vars(self):
         """Get element data"""
@@ -98,10 +75,10 @@ class AtomicElement(object):
                     self.mass = float(data[cols.index('Mass')])
 
                     edge = float(data[cols.index(self.shell)])
-# Absorption Edge [KeV]
+                    # Absorption Edge [KeV]
                     self.edge = edge if edge > 0.0 else 50000.0
 
-# Coster-Kronig Coefficients
+                    # Coster-Kronig Coefficients
                     # self.ck = float(
                     #        data[cols.index(get_options('ck (c12, c13, c23):',
                     #                                    ('c12', 'c13', 'c23'),
@@ -109,7 +86,7 @@ class AtomicElement(object):
                     #                                    ))])
 
                     xray = float(data[cols.index(self.line)])
-# X-Ray Emmision Line Energy [KeV]
+                    # X-Ray Emmision Line Energy [KeV]
                     self.xray = xray if xray > 0.0 else 50000.0
 
                     rjump = {'K': float(data[cols.index('rjump1')]),
@@ -144,7 +121,7 @@ class AtomicElement(object):
             if shell == 'M1':
                 shell = 'L3'
             shell = shell.lower()
-            omega = self.get_data(z, shell)
+            omega = get_data(z, shell)
         return omega
 
     def get_shell(self):
