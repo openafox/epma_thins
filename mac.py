@@ -16,8 +16,7 @@ z -- Atomic Number
 mass -- Atomic Mass
 xray -- Element X-Ray emmision
 Return:
-xmu -- ??Mass Absorption Coefficient??
-iflag -- ??
+xmu -- Mass Absorption Coefficient
 """
 # Copyright 2015 Austin Fox
 # Program is distributed under the terms of the
@@ -25,17 +24,20 @@ iflag -- ??
 
 import sys
 import numpy as np
-from basictools import get_data
+from basictools import get_data, user_alert, get_nums
 
 
-def mac(z, mass, xray):
-    """ This calc needs to be checked.  See above refs"""
-    iflag = 1
+def mac(el, xray):
+    """Calculation of Mass the Absorption Coefficient of an impinging X-Ray of
+    energy (xray) on an Element (el).
+    This calc needs to be checked.  See above refs"""
+
+    ie = ""
     cutoff = 0
-    e = 0
+    z = el.z
+    mass = el.mass
     # calculate 'c' parameter
     if xray > get_data(z, 'K'):
-        ie = 1
         if z < 6:
             c = -2.87536e-4 + 1.808599e-3 * z
         else:
@@ -52,16 +54,12 @@ def mac(z, mass, xray):
              -9.07306e-10 * z**4 +
              3.19254e-12 * z**5)
         if xray > get_data(z, 'L1'):
-            ie = 2
             c = c
         elif xray > get_data(z, 'L2'):
-            ie = 3
             c = c * 0.858
         else:
-            ie = 4
             c = c*(0.8933 - z*8.29e-3 + z**2*6.38e-5)
     elif xray > get_data(z, 'M1'):
-        ie = 5
         if z < 30:
             c = (1.889757e-2 +
                  -1.8517159e-3 * z +
@@ -92,27 +90,22 @@ def mac(z, mass, xray):
               -0.0480 * z +
               4.0664e-4 * z**2)
         if xray > get_data(z, 'M2'):
-            ie = 6
             c = c1*c2*c3
         elif xray > get_data(z, 'M3'):
-            ie = 7
             c = c1*c2*c4
         elif xray > get_data(z, 'M4'):
-            ie = 8
             c = c1*c2*0.95
-        else:
-            ie = 9
+        else:  # M5
+            ie = 'M5'
             c = c1*c2*c5
     else:
-        ie = 10
         c = 1.08*(4.3156e-3 +
                   -1.4653e-4 * z +
                   1.707073e-6 * z**2 +
                   -6.69827e-9 * z**3)
         if xray < get_data(z, 'N1'):
             cutoff = ((0.252*z - 31.1812)*z + 1042.)/1000.0
-            e = cutoff
-            ie = 11
+            ie = 'N1'
 
 #      calculate 'n' parameter
     if xray > get_data(z, 'K'):
@@ -200,26 +193,35 @@ def mac(z, mass, xray):
 
         xmu = c * z**4 / mass * ((12.397 / xray)**n) * (1. - np.exp(qq))
         if xmu < 0.0:
-            iflag = 8
+            mess = '!!!   negative  mac    !!!'
     else:
         xmu = (((12.397 / xray)**n) * c * z**4 / mass * (xray - cutoff) /
                (1.08 * get_data(z, 'N1')))
     if xray < 1.1 * cutoff:
-        iflag = 3
-    if xray - e < 0.02 and xray - e > -0.005:
-        iflag = 2
-    if ie == 9:
-        iflag = 5
-    if ie == 11:
-        iflag = 4
-    if ie == 11 and (xray - e < 0.02 and xray - e > -0.005):
-        iflag = 6
-    if ie == 9 and (xray - e < 0.02 and xray - e > -0.005):
-        iflag = 7
-    if xmu < 0.0 and iflag == 4:
-        iflag = 9
+        mess = '!!!  Ec<1.1xcutoff     !!!'
+    elif xray - cutoff < 0.02 and xray - cutoff > -0.005:
+        mess = '!!!  close to edge     !!!'
+    else:
+        mess = "Good!!"
+    if ie == 'M5':
+        mess += '!!!M4>Ec>M5 edge & Zab<70!!!'
+    if ie == 'N1':
+        mess += '!!!  Ec below M5 edge  !!!'
+    if xmu < 0.0 and ie == 'N1':
+        mess = '!!!neg. mac & Ec<M5edge!!!'
+    user_alert(mess + '\nemiter=%s; absorber=%s; line=%s; mu=%.4g'
+               % (el1.name, el2.name, el1.line, xmu))
 
-    return (xmu, iflag)
+    if xmu <= 0.0:
+        xmu1 = xmu
+        xmu = get_nums('MAC is negative; Enter a value for this MAC :')
+        user_alert('emiter=%s; absorber=%s; line=%s;'
+                   'mu changed from %.4g to %.4g'
+                   % (el1.name, el2.name, el1.line, xmu1, xmu))
+    return xmu
 
 if __name__ == '__main__':
-    print mac(12, 24.3, 1.25)
+    from atomic_element import AtomicElement as AE
+    el1 = AE('Mg', 'Ka')
+    el2 = AE('Si', 'Ka')
+    print mac(el1, el2.xray)
