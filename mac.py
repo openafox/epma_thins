@@ -27,15 +27,20 @@ import numpy as np
 from basictools import get_data, user_alert, get_nums
 
 
-def mac(el, xray):
-    """Calculation of Mass the Absorption Coefficient of an impinging X-Ray of
-    energy (xray) on an Element (el).
+def mac(el1, el2):
+    """Calculation of Mass the Absorption Coefficient of an impinging X-Ray
+    from el1 on el2.
     This calc needs to be checked.  See above refs"""
 
+    if  el1.z == 5 and el2.z == 40:
+        """ B xray interacting with Zr ???  weird"""
+        xmu = 8270.0
+        iflag = 2
     ie = ""
     cutoff = 0
-    z = el.z
-    mass = el.mass
+    xray = el1.xray
+    z = el2.z
+    mass = el2.mass
     # calculate 'c' parameter
     if xray > get_data(z, 'K'):
         if z < 6:
@@ -202,26 +207,28 @@ def mac(el, xray):
     elif xray - cutoff < 0.02 and xray - cutoff > -0.005:
         mess = '!!!  close to edge     !!!'
     else:
-        mess = "Good!!"
+        mess = 'Good!!'
     if ie == 'M5':
         mess += '!!!M4>Ec>M5 edge & Zab<70!!!'
+        if el2.mass >= 70:
+            mess = 'Good!!'
     if ie == 'N1':
         mess += '!!!  Ec below M5 edge  !!!'
     if xmu < 0.0 and ie == 'N1':
         mess = '!!!neg. mac & Ec<M5edge!!!'
-    user_alert(mess + '\nemiter=%s; absorber=%s; line=%s; mu=%.4g'
-               % (el1.name, el2.name, el1.line, xmu))
+    user_alert(mess + '\nemiter=%s %s; absorber=%s; mu=%.4g'
+               % (el1.name, el1.line, el2.name, xmu))
 
     if xmu <= 0.0:
         xmu1 = xmu
         xmu = get_nums('MAC is negative; Enter a value for this MAC :')
-        user_alert('emiter=%s; absorber=%s; line=%s;'
+        user_alert('emiter=%s %s; absorber=%s;'
                    'mu changed from %.4g to %.4g'
-                   % (el1.name, el2.name, el1.line, xmu1, xmu))
+                   % (el1.name, el1.line, el2.name, xmu1, xmu))
     return xmu
 
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AE
     el1 = AE('Mg', 'Ka')
     el2 = AE('Si', 'Ka')
-    print mac(el1, el2.xray)
+    print mac(el1, el2)
