@@ -8,10 +8,10 @@ A -- apple
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
-import readline  # nice line editor for inputs
 from basictools import (yes_no, get_options, get_nums, out_data, get_string,
                         wtfract)
 from atomic_element import AtomicElement
+from mac import mac
 
 
 class EpmaStd(object):
@@ -35,11 +35,11 @@ class EpmaStd(object):
                     header = ['Element', 'Atomic_Formula', 'X-Ray_Line']
                     out = []
                     for j in range(1, len(data), 3):
-                        out.append([data[j], round(float(data[j + 2]), 5), 
+                        out.append([data[j], round(float(data[j + 2]), 5),
                                     data[j + 1]])
-                    out_data(header, out, width = 15)
+                    out_data(header, out, width=15)
                     reply = yes_no('Is this data correct for standard %s?:'
-                                    % self.name)
+                                   % self.name)
                     if reply is True:
                         for j in range(1, len(data), 3):
                             self.els.append(AtomicElement(data[j],  # name
@@ -47,8 +47,8 @@ class EpmaStd(object):
                                                           ))
                             self.els[-1].wtfract = data[j + 2]
                         return True
-                        # bounce out False using default reply 
-        if reply is False: 
+                        # bounce out False using default reply
+        if reply is False:
             reply = yes_no('Replace Saved Data?:')
             if reply is True:
                 with open('epmastds.txt', 'r') as old_file,\
@@ -62,7 +62,7 @@ class EpmaStd(object):
             else:
                 self.__init__()
                 return True
-                                
+
             # if no matches
             return False
 
@@ -71,7 +71,6 @@ class EpmaStd(object):
                           'or atomic formula(a) (def=a):' % self.name,
                           ('W', 'A'), 'A')
         while True:
-            fr = []
             count = 0
             while True:
                 count += 1
@@ -102,11 +101,30 @@ class EpmaStd(object):
         data = ""
         for i in range(0, len(self.els)):
             data += "\t%s\t%s\t%s" % (self.els[i].name,
-                                  self.els[i].line,
-                                  self.els[i].wtfrac)
+                                      self.els[i].line,
+                                      self.els[i].wtfrac)
         towrite = "%s%s\n" % (self.name, data)
         with open('empastds.txt', 'a') as myfile:
             myfile.write(towrite)
+
+    def macstd(self, el1, el2, macchang, caller):
+        """controls calculation of mass absorption coefficients
+        for compound standards."""
+        xmu = mac(el1, el2)
+        if macchang == 'Y':
+            mess = ('+MAC for %s %s in %s is %.4g\nChange to:(def.=current)'
+                    % (el1.name, el1.line, el2.name, xmu))
+            if caller == 'B':
+                mess = mess + 'XRF, Compd. Stnd.:'
+            if caller == 'C':
+                mess = mess + 'Compound Standard:'
+            if caller == 'P':
+                mess = mess + 'Pure Element Stnd:'
+            if caller == 'F':
+                mess = mess + 'Addl. XRF, Sample:'
+            xmu = get_nums(mess, 10e10, 0, xmu)
+            print '+Changed to %.4g' % xmu
+        return xmu
 
 if __name__ == '__main__':
     std = EpmaStd()
