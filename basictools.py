@@ -175,16 +175,50 @@ def wtfract(els, form):
     return cnc
 
 
+def all_or_none(*args):
+    """Returns:
+    True if all = None
+    False if all != None
+    Exception if mixed
+    """
+    test = True
+    count = 0
+    for var in args:
+        if var is None:
+            test = test and True
+        if var is not None:
+            test = test and False
+            count += 1
+    if count == len(args):
+        return False
+
+    if test is False:
+        # warn programer if improper usage
+        raise ValueError('all or none of args must be specified.')
+    return test
+
+"""# Python 2
+def safe_division_d(number, divisor, **kwargs):
+    ignore_overflow = kwargs.pop('ignore_overflow', False)
+    ignore_zero_div = kwargs.pop('ignore_zero_division', False)
+    if kwargs:
+        raise TypeError('Unexpected **kwargs: %r' % kwargs)
+    # ...
+"""
+
 if __name__ == '__main__':
     # print yes_no("Q?")
     # print get_nums("test", default=1, zeroval=-1)
     # print get_options('el', 'els')
     # out_data(('#', '#'), ((1, 1), (2, 2)))
     # out_data(('#', '#'), (1, 1), width=15)
-    from atomic_element import AtomicElement as AtEl
-    Si = AtEl('Si', 'Ka')
-    o = AtEl('O', 'Ka')
-    els = [Si, o]
-    form = [1, 2]
-    print wtfract(els, form)
-    print 28.0/(28+16*2)
+    # from atomic_element import AtomicElement as AtEl
+    # Si = AtEl('Si', 'Ka')
+    # o = AtEl('O', 'Ka')
+    # els = [Si, o]
+    # form = [1, 2]
+    # print wtfract(els, form)
+    # print 28.0/(28+16*2)
+    print all_or_none(None, None, None)
+    print all_or_none('3', '5', '6')
+    print all_or_none(None, '5', None)
