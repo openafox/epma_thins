@@ -11,6 +11,7 @@ A -- apple
 import sys
 from basictools import get_nums, yes_no, get_options
 from film_layer import FilmLayer
+import numpy as np
 
 
 class AnalysisSample(object):
@@ -23,7 +24,7 @@ class AnalysisSample(object):
     """
 
     def __init__(self, **kwargs):
-        if len(kwargs) == 3:
+        if len(kwargs) == 4:
             # Take Off Angle
             self.toa = kwargs['toa']
             # List of accelerating voltages used on all elements
@@ -31,6 +32,10 @@ class AnalysisSample(object):
             self.volts = kwargs['volts']
             # List of film layers
             self.layers = kwargs['layers']
+            # ph(rz) model type
+            self.model = kwargs['model']
+        elif len(kwargs) > 0:
+            raise ValueError('all or none of kargs must be specified.')
         else:
             # Take Off Angle
             self.toa = self.get_toa
@@ -39,6 +44,8 @@ class AnalysisSample(object):
             self.volts = self.get_volts = []
             # List of film layers
             self.layers = self.get_layers([])
+            # ph(rz) model type
+            self.model = self.get_model
 
     def get_layers(self, layers=[]):
         """Get new layers to add to the sample:
@@ -56,7 +63,17 @@ class AnalysisSample(object):
         for i in range(len(self.layers), 0):
             depth += self.layers[i].thick
             self.layers[i].depth = depth
- 
+
+    def get_model():
+        """gets desired phi(rz) model from user"""
+        model = get_options('Choices of phi(rz) models are(default=E):\n'
+                            '\t(B)\tBastin\'s              Scanning (1986)\n'
+                            '\t(C)\tBastin\'s              Scanning (1990)\n'
+                            '\t(E)\tPouchou, Pichoir (PAP) Scanning (1990)\n'
+                            '\t(P)\tPackwood\'s            MAS      (1986):\n',
+                            ('B', 'C', 'E', 'P'), 'E')
+        return model
+
     def get_volts(self):
         """Get accelerating voltages"""
         volts = []
@@ -96,6 +113,43 @@ class AnalysisSample(object):
             self.layers[i].fix = yes_no(mess, False)
             self.layers[i].fixlayer()
 
+    def qe0(self, el, volt, model=None):
+        """Ionization cross section at operating potential
+        3/91 r.a. waldo
+        Modified 10/91 according to Pouchou and Pichoir
+        in "Electron Probe Quantitation" Plenum Press (1988 NBS Workshop)
+        """
+        if model is None:
+            model = self.model
+        z = el.z
+        line = el.line
+        u0 = volt/el.edge
+        if model == 'B' or model == 'P':
+                mparam = 0.8
+        else:
+            if line[0] == 'L':
+                mparam = 0.82
+            if line[0] == 'M':
+                mparam = 0.78
+            if line[0] == 'K':
+                if z > 30:
+                    mparam = 0.86
+                else:
+                    mparam = 0.86 + 0.12*np.exp(-1.0*(z/5.0)**2)
+            # 39229.=pi x e^4 ; e is the electron charge
+            # b=.76
+        q = np.log(u0)/el.edge**2/u0**mparam
+        if model == 'B' or model == 'P':
+                qe0 = 39229.0*0.76*q
+        elif model == 'C' or model == 'E':
+            if line[0] == 'K':
+                qe0 = 1e-20*3.8*mparam*6.023e23*q
+            if line[0] == 'L':
+                qe0 = 1e-20*5.7*mparam*6.023e23*q
+        if line[0] == 'M':
+            qe0 = 39229.0*mparam*q
+        return qe0
+
     def __iter__(self):
         self.j = 0
         self.i = len(self.layers) - 1
@@ -126,11 +180,11 @@ if __name__ == '__main__':
     ti = AtEl('Ti', 'Ka')
     layer1 = FL(els=[Si, o], rho=2.65)
     layer2 = FL(els=[ti, o], rho=4.23)
-    sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2])
+    sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
+                            model='E')
     print 'o'
     for i, lay, el in sample:
         print 'Element:', el.name, ' Mass', el.mass, 'layer', i
     print ""
     for i, lay, el in sample:
         print 'Element:', el.name, 'Density', lay.rho, 'layer', i
-    
