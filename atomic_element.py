@@ -64,6 +64,8 @@ class AtomicElement(object):
         self.rjump = self.get_rjump()
         # EFFective Fluorescence YieLD
         self.effyld = self.get_effyld()
+        # TRaNSition PROBability of line after shell ionization
+        self.trnsprob = self.get_trnsprob()
 
         with open('atomic_data.txt', 'r') as data_file:
             for row in data_file:
@@ -136,6 +138,8 @@ class AtomicElement(object):
         3/91 r.a. waldo
         NEED TO FIND REFS FOR THIS
         """
+        # need to check this xray may actually be accelerating voltage...?
+        # var was xenergy in RAW code
         if el is None:
             el = self
         # Coster-Kronig Coefficients
