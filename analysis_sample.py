@@ -28,12 +28,12 @@ class AnalysisSample(object):
             # Take Off Angle
             self.toa = kwargs['toa']
             # List of accelerating voltages used on all elements
-            # gmrfilm defined for each
+            # gmrfilm defined for each element
             self.volts = kwargs['volts']
             # List of film layers
             self.layers = kwargs['layers']
             # ph(rz) model type
-            self.model = kwargs['model']
+            self.phimodel = kwargs['phimodel']
         elif len(kwargs) > 0:
             raise ValueError('all or none of kargs must be specified.')
         else:
@@ -45,7 +45,7 @@ class AnalysisSample(object):
             # List of film layers
             self.layers = self.get_layers([])
             # ph(rz) model type
-            self.model = self.get_model
+            self.phimodel = self.get_phimodel
 
     def get_layers(self, layers=[]):
         """Get new layers to add to the sample:
@@ -64,15 +64,16 @@ class AnalysisSample(object):
             depth += self.layers[i].thick
             self.layers[i].depth = depth
 
-    def get_model():
+    def get_phimodel():
         """gets desired phi(rz) model from user"""
-        model = get_options('Choices of phi(rz) models are(default=E):\n'
-                            '\t(B)\tBastin\'s              Scanning (1986)\n'
-                            '\t(C)\tBastin\'s              Scanning (1990)\n'
-                            '\t(E)\tPouchou, Pichoir (PAP) Scanning (1990)\n'
-                            '\t(P)\tPackwood\'s            MAS      (1986):\n',
-                            ('B', 'C', 'E', 'P'), 'E')
-        return model
+        phimodel = get_options(
+                'Choices of phi(rz) models are(default=E):\n'
+                '\t(B)\tBastin\'s              Scanning (1986)\n'
+                '\t(C)\tBastin\'s              Scanning (1990)\n'
+                '\t(E)\tPouchou, Pichoir (PAP) Scanning (1990)\n'
+                '\t(P)\tPackwood\'s            MAS      (1986):\n',
+                ('B', 'C', 'E', 'P'), 'E')
+        return phimodel
 
     def get_volts(self):
         """Get accelerating voltages"""
@@ -113,18 +114,18 @@ class AnalysisSample(object):
             self.layers[i].fix = yes_no(mess, False)
             self.layers[i].fixlayer()
 
-    def qe0(self, el, volt, model=None):
+    def qe0(self, el, volt, phimodel=None):
         """Ionization cross section at operating potential
         3/91 r.a. waldo
         Modified 10/91 according to Pouchou and Pichoir
         in "Electron Probe Quantitation" Plenum Press (1988 NBS Workshop)
         """
-        if model is None:
-            model = self.model
+        if phimodel is None:
+            phimodel = self.phimodel
         z = el.z
         line = el.line
         u0 = volt/el.edge
-        if model == 'B' or model == 'P':
+        if phimodel == 'B' or phimodel == 'P':
                 mparam = 0.8
         else:
             if line[0] == 'L':
@@ -139,9 +140,9 @@ class AnalysisSample(object):
             # 39229.=pi x e^4 ; e is the electron charge
             # b=.76
         q = np.log(u0)/el.edge**2/u0**mparam
-        if model == 'B' or model == 'P':
+        if phimodel == 'B' or phimodel == 'P':
                 qe0 = 39229.0*0.76*q
-        elif model == 'C' or model == 'E':
+        elif phimodel == 'C' or phimodel == 'E':
             if line[0] == 'K':
                 qe0 = 1e-20*3.8*mparam*6.023e23*q
             if line[0] == 'L':
@@ -175,13 +176,13 @@ class AnalysisSample(object):
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
-    Si = AtEl('Si', 'Ka')
-    o = AtEl('O', 'Ka')
+    Si = AtEl('Si', 'Ka', 15)
+    o = AtEl('O', 'Ka', 15)
     ti = AtEl('Ti', 'Ka')
     layer1 = FL(els=[Si, o], rho=2.65)
     layer2 = FL(els=[ti, o], rho=4.23)
     sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
-                            model='E')
+                            phimodel='E')
     print 'o'
     for i, lay, el in sample:
         print 'Element:', el.name, ' Mass', el.mass, 'layer', i

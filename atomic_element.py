@@ -6,28 +6,31 @@ container for elements and their properties
 # Program is distributed under the terms of the
 # GNU General Public License see ./License for more information.
 
-from basictools import get_options, at_els, user_alert, get_data, all_or_none
+from basictools import (get_options, get_nums, at_els, user_alert,
+                        get_data, all_or_none)
 
 
 class AtomicElement(object):
     """container for elements and their properties"""
-
-    def __init__(self, name=None, line=None):
+    #  #######This whole voltage (e0) thing is still very confusing
+    # ######## may require some major rework depending on how it needs to work
+    def __init__(self, name=None, line=None, volt=None):
         if all_or_none(name, line):
-            # Elemet Name and Line
-            self.name, self.line, self.z = self.get_el_nd_ln()
-        else:
-            self.name = name
-            self.z = at_els.index(name.capitalize()) + 1
-            self.line = line
-            ecr = get_data(self.z, self.line)
-            if ecr < 0:
-                """need to figure out how to make this ok for gui"""
-                user_alert('Invalid line for this element; try again:')
+            name, line, z, volt = self.user_input(volt)
+            # volt can be specified if the others are not
+
+        # Atomic Symbol
+        self.name = name
+        # Atomic Number
+        self.z = at_els.index(name.capitalize()) + 1
+        # X-Ray emmision line
+        self.line = line
+        # Accelerating voltage used for this element
+        self.volt = volt
 
         self.setup_vars()
 
-    def get_el_nd_ln(self):
+    def user_input(self, volt):
 
         z, name = get_options('Please enter Element Symbol:',
                               'els', count=True)
@@ -35,11 +38,14 @@ class AtomicElement(object):
         while True:
             line = get_options('Please enter Element X-Ray Line '
                                '(Ka, Lg2, etc.):', 'lines')
-            ecr = get_data(z, line)
-            if ecr > 0:
+            xray = get_data(z, line)
+            if xray > 0:
                 break
             user_alert('Invalid line for this element; try again:')
-        return name, line, z
+        if volt is None:
+            volt = get_nums('Accelerating voltage for this element?:',
+                            50, 0)
+        return name, line, z, volt
 
     def get_opt(self):
         """Options for analysis
@@ -90,7 +96,14 @@ class AtomicElement(object):
 
                     xray = float(data[cols.index(self.line)])
                     # X-Ray Emmision Line Energy [KeV]
-                    self.xray = xray if xray > 0.0 else 50000.0
+                    if xray > 0.0:
+                        self.xray = xray
+                    else:
+                        50000.0
+                        user_alert('X-Ray emmision line not valid for'
+                                   'element\n X-Ray energy set to 50MeV.'
+                                   '\nPlease select another line to prevent'
+                                   'anomalous calculations!')
 
     def get_rjump(self, z=None, shell=None):
         if all_or_none(z, shell):
@@ -150,12 +163,12 @@ class AtomicElement(object):
         if el.shell[0] != 'L':
             effyld = el.omega
         elif el.shell[0] == 'L':
-            rj1 = rjump(el.z, 2)
-            rj2 = rjump(el.z, 3)
-            rj3 = rjump(el.z, 4)
-            l1 = edge(el.z, 'Lb3')
-            l2 = edge(el.z, 'Lb1')
-            l3 = edge(el.z, 'La1')
+            rj1 = self.get_rjump(el.z, 2)
+            rj2 = self.get_rjump(el.z, 3)
+            rj3 = self.get_rjump(el.z, 4)
+            l1 = self.get_data(el.z, 'Lb3')
+            l2 = self.get_data(el.z, 'Lb1')
+            l3 = self.get_data(el.z, 'La1')
             if el.shell == 'L1':
                 effyld = el.omega
             elif el.shell == 'L2':
@@ -268,7 +281,8 @@ class AtomicElement(object):
 if __name__ == '__main__':
     name = 'Mg'
     line = 'Ka'
-    el = AtomicElement(name, line)
+    volt = 15
+    el = AtomicElement(name, line, volt)
     print 'name:', el.name
     print 'line:', el.name
     print 'mass:', el.mass
