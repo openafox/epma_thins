@@ -27,7 +27,7 @@ import numpy as np
 from basictools import get_data, user_alert, get_nums
 
 
-def mac(el1, el2):
+def Mac(el1, el2):
     """Calculation of Mass the Absorption Coefficient of an impinging X-Ray
     from el1 on el2.
     This calc needs to be checked.  See above refs"""

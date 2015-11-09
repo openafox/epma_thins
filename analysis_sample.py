@@ -12,6 +12,8 @@ import sys
 from basictools import get_nums, yes_no, get_options
 from film_layer import FilmLayer
 import numpy as np
+from mac import Mac
+import itertools
 
 
 class AnalysisSample(object):
@@ -46,6 +48,8 @@ class AnalysisSample(object):
             self.layers = self.get_layers([])
             # ph(rz) model type
             self.phimodel = self.get_phimodel
+        # Mass Absorption Coefficients
+        self.get_macs()
 
     def get_layers(self, layers=[]):
         """Get new layers to add to the sample:
@@ -114,6 +118,31 @@ class AnalysisSample(object):
             self.layers[i].fix = yes_no(mess, False)
             self.layers[i].fixlayer()
 
+    def get_chiov(self, el1, layindex):
+        """chi OVerlayer
+        finds the chi (wt. fraction averaged mass absorption coefficient)
+        of an overlayer for an element 'el1' in an underlying layer (layindex)
+        """
+
+        chiovl = list(np.zeros((0, len(self.layers) - layindex)))
+        # surface to current layer
+        for lar, el2 in self:
+            if self.layers.index(lar) > layindex:  
+                # only calculate to current layer
+                chiovl[i] += el2.c1 * el1.mac[el2.name]
+        return chiovl
+
+    def get_macs(self):
+        """Get Mass Absorption Coefficients
+        Each element has a mac for its x-ray emmision by every other element.
+        """
+        for lar1, el1 in self:
+            el1.mac = {}
+        for (lar1, el1), (lar2, el2) in itertools.product(self, repeat=2):
+                # print el1.name, el2.name
+                if not el2.name in el1.mac:
+                    el1.mac[el2.name] = Mac(el1, el2)
+
     def qe0(self, el, volt, phimodel=None):
         """Ionization cross section at operating potential
         3/91 r.a. waldo
@@ -158,6 +187,7 @@ class AnalysisSample(object):
 
     def next(self):
         layindex = self.i
+        elindex = self.j
         try:
             layer = self.layers[self.i]
             el = self.layers[self.i].els[self.j]
@@ -170,22 +200,23 @@ class AnalysisSample(object):
             self.j = 0
         else:
             self.j = self.j + 1
-        return layindex, layer, el
+        return layer, el
 
 
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
-    Si = AtEl('Si', 'Ka', 15)
-    o = AtEl('O', 'Ka', 15)
-    ti = AtEl('Ti', 'Ka')
+    Si = AtEl('Si', 'Ka', 15, 's')
+    o = AtEl('O', 'Ka', 15, 's')
+    ti = AtEl('Ti', 'Ka', 15, 's')
     layer1 = FL(els=[Si, o], rho=2.65)
     layer2 = FL(els=[ti, o], rho=4.23)
     sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
                             phimodel='E')
-    print 'o'
-    for i, lay, el in sample:
-        print 'Element:', el.name, ' Mass', el.mass, 'layer', i
+    print 'defs done'
+    for lay, el in sample:
+        print ('Element:', el.name, ' Macs', el.mac, 'layer',
+               sample.layers.index(lay))
     print ""
-    for i, lay, el in sample:
-        print 'Element:', el.name, 'Density', lay.rho, 'layer', i
+    for lay, el in sample:
+        print 'Element:', el.name, 'Density', lay.rho
