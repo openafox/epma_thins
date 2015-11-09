@@ -14,9 +14,9 @@ class AtomicElement(object):
     """container for elements and their properties"""
     #  #######This whole voltage (e0) thing is still very confusing
     # ######## may require some major rework depending on how it needs to work
-    def __init__(self, name=None, line=None, volt=None):
-        if all_or_none(name, line):
-            name, line, z, volt = self.user_input(volt)
+    def __init__(self, name=None, line=None, volt=None, opt=None):
+        if all_or_none(name, line, opt):
+            name, line, z, volt, opt= self.user_input(volt)
             # volt can be specified if the others are not
 
         # Atomic Symbol
@@ -42,10 +42,11 @@ class AtomicElement(object):
             if xray > 0:
                 break
             user_alert('Invalid line for this element; try again:')
+        opt = self.get_opt()
         if volt is None:
             volt = get_nums('Accelerating voltage for this element?:',
                             50, 0)
-        return name, line, z, volt
+        return name, line, z, volt, opt
 
     def get_opt(self):
         """Options for analysis
