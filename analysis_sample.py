@@ -62,11 +62,12 @@ class AnalysisSample(object):
                 break
         return layers
 
-    def get_layers_depth(self):
+    def update_layers_depth(self):
+        """find depth (to top) of burried layers."""
         depth = 0.0
-        for i in range(len(self.layers), 0):
-            depth += self.layers[i].thick
+        for i in range(len(self.layers), 0, -1):
             self.layers[i].depth = depth
+            depth += self.layers[i].thick
 
     def get_phimodel():
         """gets desired phi(rz) model from user"""
@@ -103,7 +104,7 @@ class AnalysisSample(object):
                 el.setup_vars()
 
     def get_toa(self):
-        """get take-off angle"""
+        """get take-off angle from user"""
         return get_nums('Enter take-off angle (default=40 degrees):',
                         90, 0, 40)
 
@@ -118,19 +119,18 @@ class AnalysisSample(object):
             self.layers[i].fix = yes_no(mess, False)
             self.layers[i].fixlayer()
 
-    def get_chiov(self, el1, layindex):
-        """chi OVerlayer
-        finds the chi (wt. fraction averaged mass absorption coefficient)
-        of an overlayer for an element 'el1' in an underlying layer (layindex)
+    def find_ovl_macs(self, el1, layindex):
+        """finds the wt. fraction averaged mass absorption coefficient of
+        overlayers for an element 'el1' in an underlying layer (layindex)
         """
 
-        chiovl = list(np.zeros((0, len(self.layers) - layindex)))
+        el1.ovl_macs = [0 for i in self.layers]  # create list of zeros
         # surface to current layer
         for lar, el2 in self:
-            if self.layers.index(lar) > layindex:  
-                # only calculate to current layer
-                chiovl[i] += el2.c1 * el1.mac[el2.name]
-        return chiovl
+            i = self.layers.index(lar)
+            if i > layindex:
+                # only calculate to current layer leave rest as zero
+                el1.ovl_macs[i] += el2.c1 * el1.mac[el2.name]
 
     def get_macs(self):
         """Get Mass Absorption Coefficients
@@ -140,7 +140,7 @@ class AnalysisSample(object):
             el1.mac = {}
         for (lar1, el1), (lar2, el2) in itertools.product(self, repeat=2):
                 # print el1.name, el2.name
-                if not el2.name in el1.mac:
+                if el2.name not in el1.mac:
                     el1.mac[el2.name] = Mac(el1, el2)
 
     def qe0(self, el, volt, phimodel=None):
@@ -180,14 +180,99 @@ class AnalysisSample(object):
             qe0 = 39229.0*mparam*q
         return qe0
 
+    def get_valences(self):
+        """input of valences when one element is analyzed by stoichiometry
+        May want to make this a selection in gui version...
+        """
+        for lar, el in self:
+            if el.opt == 'S':
+                lar.stoich = el
+            else:
+                lar.stoich = 0
+        for lar, el in self:
+            i = self.layers.index(lar)
+            if lar.fix:
+                continue
+            if lar.stoich == 0:
+                continue
+            el.valence = get_nums('Enter valence for layer %d element %s:'
+                                  % (i, el.name), 20, 0)
+
+    def calc_stoich(self):
+        """calculates weight and atomic fractions of all elements given
+        valences if one element is analyzed by stoichiometry
+        """
+        for lar in self.layers:
+            if lar.fix:
+                continue
+            if lar.stoich != 0:
+                stc = 0.
+                for el in lar.els:
+                    if lar.stoic != el:
+                        el.atpc = el.c1 / el.mass
+                        stc += (el.atpc * el.valence / lar.stoich.valence)
+                        # next((x.valence for x in lar.els
+                        #      if x.name ==lar.stoich)))
+                        # above is list comprehention to find el from
+                        # el.name
+                lar.stoich.atpc = abs(stc)
+                lar.stoich.c1 = lar.stoich.atpc * lar.stoich.mass
+                tsum = np.sum(np.asarray([x.c1 for x in lar.els]))
+                for el in lar.els:
+                    el.c3 = el.c1
+                    el.c1 = el.c1/tsum  # normalizing concentrations??
+
+    def calc_thick0(self):
+        """Calculates starting film thicknesses for the iteration procedure.
+        Based on RAW's MAS 88 paper and the strtthick code in GMRFilm
+        """
+        self.calc_stoich()
+
+        csctheta = 1.0/np.sin(self.toa*180/np.pi())  # cosecant(take off ang)
+
+        for lar, el in self:
+            li = self.layers.index(lar)
+            r = 6.5e-6 * el.e0**1.70  # from heinrich p419
+            # (Castaing, R., Adv. Elec. Phys. 13, 317 (1960)
+            # why not use 7.0 ... 1.65??   from MAS 88 paper eq 16 (Heinrich
+            # derivation p419) not sure why to chose on over the other, yet
+            if lar.fix or lar.stoich == el.name:
+                continue
+
+            factor = 0.0
+            if li > len(self.layers):
+                # if burried layer
+                self.find_ovl_macs(el, li)
+                for j in range(len(self.layers), li, -1):
+                    factor += self.layers[j].thick * el.ovl_macs[j]
+
+            self.update_layers_depth()
+
+            if self.layers.index(lar) == len(self.layers):
+                # if surface layer
+                lar.thick += r*(1.0 - np.sqrt(1.0 - el.kr))
+                # from MAS 88 paper eq 16 (sorta, wrong in paper)
+                # it is correct however and is derived in docs
+                chi = 1.0  # Abs Coeff of over layers
+            elif self.layers.index(lar) == 0:
+                # if substrate
+                chi = np.exp(-csctheta * factor)  # Abs Coeff of over layers
+            else:
+                # if burried layer
+                t1 = np.sqrt(1.0 - el.kr - 2.0*lar.depth/r + (lar.depth/r)**2)
+                lar.thick += (r*(1.0 - t1) - lar.depth)
+                # from MAS 88 paper eq 16 (sorta, wrong in paper)
+                # it is correct however and is derived in docs
+                chi = np.exp(-csctheta * factor)  # Abs Coeff of over layers
+            el.c1 = el.c1/chi
+
     def __iter__(self):
+        """itterate from top layer down"""
         self.j = 0
         self.i = len(self.layers) - 1
         return self
 
     def next(self):
-        layindex = self.i
-        elindex = self.j
         try:
             layer = self.layers[self.i]
             el = self.layers[self.i].els[self.j]
@@ -220,3 +305,4 @@ if __name__ == '__main__':
     print ""
     for lay, el in sample:
         print 'Element:', el.name, 'Density', lay.rho
+    # Need to add test of calc_thick0...
