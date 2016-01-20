@@ -30,6 +30,13 @@ class AtomicElement(object):
 
         self.setup_vars()
 
+        # Setup Unknowns/initial values (Place holders)
+
+        # Working Concentration (Maybe Kratio and weight fraction)
+        self.ci = 0
+        # Log previous c values (clog[0]-values, clog[1]-setby)
+        self.clog = [[0, 'init']]
+
     def user_input(self, volt):
 
         z, name = get_options('Please enter Element Symbol:',
@@ -61,6 +68,7 @@ class AtomicElement(object):
     def setup_vars(self):
         """Get element data"""
 
+        # Get element data from tables or calculation
         # Electron shell e.g. K, L1, M1, N1
         self.shell = self.get_shell()
         # Fluorescence Yields

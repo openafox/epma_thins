@@ -35,8 +35,17 @@ class FilmLayer(object):
         else:
             # Layer Density
             self.rho = self.get_dens()
-        # Layer thickness [Angs] - unknows start as 0
+
+        # Setup unknowns/initial values
+        # Layer thickness [Angs]
         self.thick = 0.0
+        # Layer depth [Angs] (to top) (0 until calculated as part of an sample)
+        self.depth = 0.0
+        # Absorbtion Coefficient [?] (chi)
+        self.chi = 0.0
+        # chi of overlayers [?] 
+        self.chiovl = 0.0
+
 
     def get_els(self, els=[]):
         """Get new elements to add to the layer: Returns AtomicElement object.
