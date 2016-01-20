@@ -19,12 +19,14 @@ import sys
 import numpy as np
 from layrelem import layrelem
 
+from atomic_element import AtomicElement as AtEl
+from film_layer import FilmLayer as FL
 from analysis_sample import AnalysisSample as AS
-from atomic_element import AtomicElement as AE
 
 def decel_pap(samp, el_p, line=None):
     """Returns Total Trajectory
         or Deceleration Factor if line is provided
+        el_p -- primary element ie element of intrest of excited element
         [1] pages 34-6
     """
     # Overvoltage Ratio
@@ -34,16 +36,16 @@ def decel_pap(samp, el_p, line=None):
     mavg = 0.
     javg = 0.
     for lar_i, el_i in samp:
-        # p35 eq(6)
+        # [1]p35e6
         mavg += el_i.z / el_i.mass * el_i.c1
-        # p35 eq(7)
+        # [1]p35e7
         # need to check refs for full explination of where this comes from
         javg += (el_i.c1 * el_i.z / el_i.mass *
             np.log(el_i.z*(10.04 + 8.25*np.exp(-1.0*el_i.z/11.22))/1000.))
 
-    j_mip = np.exp(javg/mavg)  # mean ionization potential of each
+    j_mip = np.exp(javg/mavg)  # mean ionization potential of each [1]p35e6
 
-    # p35 eq(8)
+    # [1]p35e8
         p_k = [0.78,
                0.1,
                (-1.*(0.5 - 0.25*j_mip))]
@@ -55,41 +57,37 @@ def decel_pap(samp, el_p, line=None):
     if line is None:
         dr0 = 0.
         for k in range(0,3):
-            # p35 eq(9)
+            # [1]p35e9
             p1 = 1.0 + p_k[k]
             p2 = 1.0 - p_k[k]
-            # Total Trajectory [g/cm^2]  [1] page 35
-            dr0 += 1/mavg*(j_mip**p2*d_k[k])*(el_p.e0**p1 - el.xray**p1)/p1
+            # Total Trajectory [g/cm^2]  [1]p35e9
+            dr0 += 1/mavg*(j_mip**p2*d_k[k])*(el_p.e0**p1 - el_p.xray**p1)/p1
             # updated with E0-Eq need to find ref
         return dr0
+    # Ionization crosssection [1]p36e10-11
+    # mparam from Hutchins (get Ref)
     elif line[0] == 'K':
-        if el_p.z > 30:
-            mparam = 0.86
-        else:
-            mparam = 0.86 + 0.12*np.exp(-1.0*(el_p.z/5.0)**2.0)
+        mparam = 0.86 + 0.12*np.exp(-1.0*(el_p.z/5.0)**2.0)
     elif line[0] == 'L':
         mparam = 0.82
     elif line[0] == 'M':
         mparam = 0.78
-    # if i == 16:  I AM Not sure what this was about   nel was limited to 15??
-    #    mparam = 0.86
 
-    v0 = e0/javg
-    qe = np.log(u0)/el_p.xray**2/u0**mparam
+    v0 = el_p.e0/javg
+    qe = np.log(u0)/(el_p.xray**2*u0**mparam)  # [1]p36e10
     df = 0.0
     for k in range(0, 3):
         t_k = 1.0 + p[k] - mparam
-        # p36 eq(11) 
+        # [1]p36e11   (1/S)*qe [1]p36e13
         df += [u0/(v0 * mavg)](d_k[k] * (v0/u0)**p[k] *
                    (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0)/t**2)/qe
-        # qe addition need to find ref for this...
     return df
 
 def ppint1(rhoz, L, R):
     """evaluate limits of weighting function integral for PAP model
     10/89, r.a. waldo
 
-    [1] pg54 eq39 with extra factors (/5, /2, /3) where do they come from?
+    [1]p54e39 with extra factors (/5, /2, /3) where do they come from?
     What is N in the paper???
     """
     ppint1 = rhoz*(rhoz**4/5.0 -
@@ -101,11 +99,11 @@ def ppint1(rhoz, L, R):
 
 def ppint2(a_k, b_k, r_k, chi, rhoz):
     """Evaluate limits of x-ray intensity integral.
-    [1] p50 eq(35)
+    [1]p50e35
     10/89, r.a. waldo
     Arguments:
-    a_k -- parabolic branch [1] p37 eq(14)
-    b_k -- parabolic branch [1] p37 eq(15)
+    a_k -- parabolic branch [1]p37e14
+    b_k -- parabolic branch [1]p37e15
     r_k -- depth at which the extreem of branch k is situated 
         (Rk=Rinf for first branch, Rk=Rx and Bk=0 for second branch)
     chi -- absorption factor
@@ -113,65 +111,17 @@ def ppint2(a_k, b_k, r_k, chi, rhoz):
     """
     if chi == 0.0:
         # simplified version to prevent errors
-        ppint2 = rhoz*(rhoz**2/3.0 - r_k*rhoz + r_k**2 + b_k/a_k)
+        ppint2 = a_k*rhoz*(rhoz**2/3.0 - r_k*rhoz + r_k**2 + b_k/a_k)
 
-    elif chi*rhoz > 88.0:   # Still no Idea where this comes from...
+    elif chi*rhoz > 88.0:   # rounding to 0 exp->0  why 88?? we may never know
         ppint2 = 0.0
     else:
-        ppint2 = np.exp(-chi*rhoz)*((rhoz - r_k)**2 + 2.0*(rhoz - r_k)/chi + 
-                                    2.0/chi**2+b_k/a_k)
+        ppint2 = -(a_k/chi)*np.exp(-chi*rhoz)*((rhoz - r_k)**2 + 
+                2.0*(rhoz - r_k)/chi + 2.0/chi**2+b_k/a_k)
     return ppint2
 
 
-def paplimts(ad1,ad2,icase,rc,rx):
-    """This subroutine determines the limits of integration for primary and
-    secondary x-ray intensities.  Because the PAP model uses two quadratic
-    functions to approximate the x-ray depth distribution, the integration
-    could be one of three cases;
-        1) with limits in phi(a) only
-        2)  "     "    "  phi(b)  "
-        3)  "   lower limit in phi(a), upper limit in phi(b)
-
-    program completed 11/90 by richard a. waldo
-
-    FIGURE OUT WHERE COMES FROM
-    """
-    lim = [[0.e-6, rc],[rc, rx]]
-    if icase == -1:  # Bulk
-        return lim
-    elif icase == len(nel) - 1:  # Top Layer
-        if rc > ad2:
-            lim[0, 1] = ad2
-            lim[1, 0] = 1.0
-        elif ad2 < rx:
-            lim[1, 1] = ad2
-    elif icase == 0:  # substrate
-        if rc < ad1:
-            lim[0, 0] = 1.0
-            lim[1, 0] = ad1
-        else:
-            lim[0, 0] = ad1
-    else:  # inner layers
-        if rc < ad1:
-            lim[0, 0] = 1.0
-            lim[1, 0] = ad1
-            if ad2 < rx:
-                lim[1, 1] = ad2
-        else:
-            lim[0, 0] = ad1
-            if rc > ad2:
-                lim[0, 1] = ad2
-                lim[1, 0] = 1.0
-            else:
-                if ad2 < rx:
-                    lim[1, 1] = ad2
-    if lim[1, 0] > rx:
-        lim[1, 0] = 1.0
-
-    return lim
-
-
-def papint(adelta,icase,da1,da2,db1,drc,drm,drx,c,chiovl,dza,csctheta)
+def papint(sample, lar_p, da1,da2,db1,drc,drm,drx,c,chiovl,dza,csctheta)
     """This program integrates the phi(rz) curve for PAP model.  4 cases
     need to be handled.  case 1) the phi(rz) curve of a bulk
     specimen (for example when the pure element standard x-ray
@@ -184,59 +134,73 @@ def papint(adelta,icase,da1,da2,db1,drc,drm,drx,c,chiovl,dza,csctheta)
     subprogram to see how the parameter vlues are weighted).
 
     program completed 10/89 by richard a. waldo
-    STILL NEED TO UNDERSTAND ND FIX THIS
+    rc -- intersection of 2 parabolic curves
+    rx -- max penetration depth
     """
+    # for coding purposes
+    ti = AtEl('Ti', 'Ka', 15, 's')
+    layer1 = FL(els=[Si, o], rho=2.65)
+    layer2 = FL(els=[ti, o], rho=4.23)
+    sample = AS(toa=40, volts=[15], layers=[layer1, layer2],
+                            phimodel='E')
+    ####################
+    
     db2 = 0.0
-    mu = c*csctheta
-    rc = drc
-    rx = drx
-    rm = drm
+    mu = lar_p.chi * csctheta
+    rc = drc # intersection of 2 parabolic branches (equal slopes)
+    rx = drx # max depth (rhoz) aka ionization range
+    rm = drm # position (rhoz) at max height (phi)
 
-    # determine the limits of integration of the functions h1, h2
-    if icase != -1: # bulk??  need to check goto 20
-        if icase == len(nel) - 1: # top layer 
-            ad1 = 0.0
-            ad2 = adelta[len(nel) - 1]
-            #goto 20
-        else:
-            ad11 = 0.0
-            factor = 0.0
-            do 10 j=1,icase-1
-                ad11=ad11+adelta(j)
-                factor = factor + (chiovl[j]*csctheta - mu)*adelta[j]
-            if icase == 0:  # substrate
-                ad1 = ad11
-                ad2 = rx
-            else:
-                ad1 = ad11
-                ad2 = ad11 + adelta[icase]
-    # 20
-    lim = paplimts(ad1, ad2, icase, rc, rx)
+    
+    # MAY NEED IF BULK CASE!!!
+    # [[0.e-6, rc],[rc, rx]]
 
-    if lim[0, 0] == 1.0:
-        dza1 = 0.0
-    else:
-        if mu == 0.0:
-            dza1 = da1*(ppint2(da1, db1, drm, mu, lim[0, 1]) -
-                        ppint2(da1, db1, drm, mu, lim[0, 0]))
-        else:
-            dza1 = -da1/mu*(ppint2(da1, db1, drm, mu, lim[0, 1]) -
-                            ppint2(da1, db1, drm, mu, lim[0, 0]))
-    if lim[1, 0] == 1.0:
+    # upper integration bound (bottom of layer, top of next bellow)
+        u_bound = sample.layers[l_index - 1].depth
+    # lower integration bound (top of layer)
+        l_bound = lar_p.depth
+
+    if u_bound > rx:
+        # don't integrate beyond the ionaziation range
+        u_bound = rx
+
+    if u_bound < rc:
+        # evaluate only first int
+        dza1 = (ppint2(da1, db1, drm, mu, u_bound) -
+                ppint2(da1, db1, drm, mu, l_bound))
         dza2 = 0.0
+    elif u_bound > rc and l_bound < rc:
+        # evaluate both
+        # first with l_bound to rc
+        dza1 = (ppint2(da1, db1, drm, mu, rc) -
+                ppint2(da1, db1, drm, mu, l_bound))
+        # second with rc to u_bound
+        dza2 = (ppint2(da2, db2, drm, mu, u_bound) -
+                ppint2(da2, db2, drm, mu, rc))
+
+    elif l_bound > rc:
+        # only eval upper int
+        dza1 = 0.0
+        dza2 = (ppint2(da2, db2, drm, mu, u_bound) -
+                ppint2(da2, db2, drm, mu, l_bound))
     else:
-        if mu == 0.0:
-            dza2 = da2*(ppint2(da2, db2, drx, mu, lim[1, 1]) -
-                        ppint2(da2, db2, drx, mu, lim[1, 0]))
-        else:
-          dza2 = -da2/mu*(ppint2(da2, db2, drx, mu, lim[1, 1]) -
-                          ppint2(da2, db2, drx, mu, lim[1, 0]))
+        #Alert Error
+
+# here
+
     za1 = dza1
     za2 = dza2
     dza = dza1 + dza2
     if dza < 0.0:
         dza = 1.e-11
         return dza
+
+    # Get T_A factor for [1]p50e35 (its on p 49)
+    factor = 0.0
+    for j in range(len(sample.layers), sample.layers.index(lar_p)):
+        factor += sample.layers[j].thick*(sample.layers[j].chiovl * csctheta -
+                lar_p.chi * csctheta)
+
     if icase == len(nel) - 1 or icase == -1: # top layer or bulk
         return dza
     dza = dza*np.exp(-1.0*min(factor, 88.0))
@@ -284,37 +248,35 @@ def pap(samp, el_p):
     # get film depths - samp.layer[i].depth
     samp.get_layers_depth()
 
-    # Calculate starting compositions for the weighted-composition-iteration
-    # using the same formula in my MAS'88 paper which was used
-    # for starting thicknesses.
+    # Calculate starting compositions [RAW-MAS-88]
     if mode == 'F':
         # find element contrabutions
         for lar_i, el_i in samp
             i = samp.layers.index(lar)
-            if i = len(samp.layers): # Top Layer 
-                el_i.c1 = el_i.wtfrac*(2.0 - lar_i.thick/rt)*lar_i.thick/rt
-            elif i == 0:  # substrate  old 7
-                el_i.c1 = (el_i.wtfrac*(1.0 - lar_i.depth/rt) *
-                         (rt - lar_i.depth)/rt)
-                # flmdepth(6)
-            else:
-                el_i.c1 = (el_i.wtfrac*
-                        (((2.0 - lar_i.depth/rt)*lar_i.depth/rt) -
-                         ((2.0 - samp.lar_i[i - 1].depth/rt) * 
-                          samp.lar_i[i - 1].depth/rt
-                          )
+            if i = len(samp.layers): # Top Layer
+                # DOCS [RAW - starts] eq2
+                el_i.c1 = el_i.cn*(2.0*lar_i.thick/rt - lar_i.thick**2/rt**2)
+            elif i == 0:  # substrate
+                # DOCS [RAW - starts] eq4 R subed for y
+                el_i.c1 = el_i.cn*(1.0 - 2*lar_i.depth/rt +
+                                   (lar_i.depth/rt)**2)
+            else:  # Burried Layer
+                # DOCS [RAW - starts] eq4
+                el_i.c1 = (el_i.cn*
+                        (((2.0 - samp.layers[i - 1].depth/rt)*
+                          samp.layers[i - 1].depth/rt) -
+                         ((2.0 - samp.lar_i.depth/rt) * 
+                          samp.lar_i.depth/rt)
                          )
                         )
-# Still Checking the above Eqs - Not sure where they are from yet
-
-                # c1[j] = (cnc[j]*(2.-(adelta(layer-1)+adelta(layer))/rt)*
-                 #           (adelta(layer)-adelta(layer-1))/rt)
             if el_i.c1 <= 0.0:
                 el_i.c1 = 1.e-5
     elif mode == 'B':
         for el_i in samp.layers[0].els:
-            el_i.c1 = el_i.wtfrac
+            el_i.c1 = el_i.wtfrac 
+            # need to check what the diff is what is cnc vs wtfrac
     iter1 = 0
+    # Normalize C1 eq13 (eqs above are c1=c1*k??)
     sum1 = np.sum(np.asarray((el_i.c1 for (lar, el_i) in samp)))
     for lar, el_i in samp:
         el_i.c1 = el_i.c1/sum1
@@ -345,6 +307,8 @@ def pap(samp, el_p):
 
         if mode != 'B':
             # if film do the pap weighting functs  NEED TO LOOK AT!!!!
+            # why weighing the initial C (C_m-1, cnc) 
+            # and not the new one (C_m, c1)???????????
             if np.abs(rx*1.e6 - rt*1.e6) > 0.02:
                 c1 = papwt(h_c, cnc, nel, nels, -0.4*rx, rx)
                 #starting weighting
@@ -481,5 +445,20 @@ def pap(samp, el_p):
          
          
 if __name__ == '__main__':
-    pass
-
+    from atomic_element import AtomicElement as AtEl
+    from film_layer import FilmLayer as FL
+    Si = AtEl('Si', 'Ka', 15, 's')
+    o = AtEl('O', 'Ka', 15, 's')
+    ti = AtEl('Ti', 'Ka', 15, 's')
+    layer1 = FL(els=[Si, o], rho=2.65)
+    layer2 = FL(els=[ti, o], rho=4.23)
+    sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
+                            phimodel='E')
+    print 'defs done'
+    for lay, el in sample:
+        print ('Element:', el.name, ' Macs', el.mac, 'layer',
+               sample.layers.index(lay))
+    print ""
+    for lay, el in sample:
+        print 'Element:', el.name, 'Density', lay.rho
+    # Need to add test of calc_thick0...
