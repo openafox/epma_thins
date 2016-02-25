@@ -35,9 +35,11 @@ class AtomicElement(object):
         # Setup Unknowns/initial values (Place holders)
 
         # Working Concentration (Maybe Kratio and weight fraction)
-        self.c1 = 0
+        self.c1 = 1
         # Log previous c values (clog[0]-values, clog[1]-setby)
-        self.clog = [[0, 'init']]
+        self.clog = [[1, 'init']]
+        # Start all elements with valence of -1
+        self.valence = -1
 
     def user_input(self, volt):
 

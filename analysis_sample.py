@@ -67,7 +67,7 @@ class AnalysisSample(object):
     def update_layers_depth(self):
         """find depth (to top) of burried layers."""
         depth = 0.0
-        for i in range(len(self.layers), 0, -1):
+        for i in range(len(self.layers) - 1, 0, -1):
             self.layers[i].depth = depth
             depth += self.layers[i].thick
 
@@ -199,28 +199,27 @@ class AnalysisSample(object):
                 continue
             if lar.stoich == 0:
                 continue
-            el.valence = get_nums('Enter valence for layer %d element %s:'
+            if el.valence == -1:
+                el.valence = get_nums('Enter valence for layer %d element %s:'
                                   % (i, el.name), 20, 0)
 
     def calc_stoich(self):
         """calculates weight and atomic fractions of all elements given
         valences if one element is analyzed by stoichiometry
         """
+        self.get_valences()
         for lar in self.layers:
             if lar.fix:
                 continue
             if lar.stoich != 0:
+                el_s = lar.stoich
                 stc = 0.
                 for el in lar.els:
-                    if lar.stoic != el:
+                    if lar.stoich != el:
                         el.atpc = el.c1 / el.mass
-                        stc += (el.atpc * el.valence / lar.stoich.valence)
-                        # next((x.valence for x in lar.els
-                        #      if x.name ==lar.stoich)))
-                        # above is list comprehention to find el from
-                        # el.name
-                lar.stoich.atpc = abs(stc)
-                lar.stoich.c1 = lar.stoich.atpc * lar.stoich.mass
+                        stc += (el.atpc * el.valence / el_s.valence)
+                el_s.atpc = abs(stc)
+                el_s.c1 = el_s.atpc * el_s.mass
                 tsum = np.sum(np.asarray([x.c1 for x in lar.els]))
                 for el in lar.els:
                     el.c3 = el.c1
@@ -232,11 +231,9 @@ class AnalysisSample(object):
         """
         self.calc_stoich()
 
-        csctheta = 1.0/np.sin(self.toa*180/np.pi())  # cosecant(take off ang)
-
         for lar, el in self:
             li = self.layers.index(lar)
-            r = 6.5e-6 * el.e0**1.70  # from heinrich p419
+            r = 6.5e-6 * el.volt**1.70  # from heinrich p419
             # (Castaing, R., Adv. Elec. Phys. 13, 317 (1960)
             # why not use 7.0 ... 1.65??   from MAS 88 paper eq 16 (Heinrich
             # derivation p419) not sure why to chose on over the other, yet
@@ -251,24 +248,25 @@ class AnalysisSample(object):
                     factor += self.layers[j].thick * el.ovl_macs[j]
 
             self.update_layers_depth()
-
+            #changred kr to c1  need to check
             if self.layers.index(lar) == len(self.layers):
                 # if surface layer
-                lar.thick += r*(1.0 - np.sqrt(1.0 - el.kr))
+                lar.thick += r*(1.0 - np.sqrt(1.0 - el.c1))
                 # from MAS 88 paper eq 16 (sorta, wrong in paper)
                 # it is correct however and is derived in docs
                 chi = 1.0  # Abs Coeff of over layers
             elif self.layers.index(lar) == 0:
                 # if substrate
-                chi = np.exp(-csctheta * factor)  # Abs Coeff of over layers
+                chi = np.exp(-self.csctheta * factor)  # Abs Coeff overlayers
             else:
                 # if burried layer
-                t1 = np.sqrt(1.0 - el.kr - 2.0*lar.depth/r + (lar.depth/r)**2)
+                t1 = np.sqrt(1.0 - el.c1 - 2.0*lar.depth/r + (lar.depth/r)**2)
                 lar.thick += (r*(1.0 - t1) - lar.depth)
                 # from MAS 88 paper eq 16 (sorta, wrong in paper)
                 # it is correct however and is derived in docs
-                chi = np.exp(-csctheta * factor)  # Abs Coeff of over layers
+                chi = np.exp(-self.csctheta * factor)  # Abs Coeff overlayers
             el.c1 = el.c1/chi
+            el.clog.append([el.c1, 'thick0'])
 
     def __iter__(self):
         """itterate from top layer down"""
@@ -295,11 +293,12 @@ class AnalysisSample(object):
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
-    Si = AtEl('Si', 'Ka', 15, 's')
-    o = AtEl('O', 'Ka', 15, 's')
-    ti = AtEl('Ti', 'Ka', 15, 's')
-    layer1 = FL(els=[Si, o], rho=2.65)
-    layer2 = FL(els=[ti, o], rho=4.23)
+    el1 = AtEl('Si', 'Ka', 15, 'E')
+    el2 = AtEl('O', 'Ka', 15, 'S')
+    el3 = AtEl('Ti', 'Ka', 15, 'E')
+    el4 = AtEl('O', 'Ka', 15, 'E')
+    layer1 = FL(els=[el1, el2], rho=2.65)
+    layer2 = FL(els=[el3, el4], rho=4.23)
     samp = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
                             phimodel='E')
     print 'defs done'
@@ -308,6 +307,20 @@ if __name__ == '__main__':
                samp.layers.index(lay))
     print ""
     for lay, el in samp:
-        print 'Element:', el.name, 'Density', lay.rho
-    print "Done start test"
-    samp.calc_thick0()
+        print 'Layer:', samp.layers.index(lay), 'thickness:', lay.thick
+        print 'Element:', el.name, 'c1', el.c1
+    it = 0
+    while True:
+        it += 1
+        thick1 = samp.layers[1].thick
+        samp.calc_thick0()
+        for lay, el in samp:
+            print 'Layer:', samp.layers.index(lay), 'thickness:', lay.thick
+            print 'Element:', el.name, 'c1', el.c1
+        print ""
+        if it > 20:
+            print "done it"
+            break
+        if abs(thick1 - samp.layers[1].thick) < 0.0001:
+            print "done diff"
+            break
