@@ -16,7 +16,7 @@ class AtomicElement(object):
     # ######## may require some major rework depending on how it needs to work
     def __init__(self, name=None, line=None, volt=None, opt=None):
         if all_or_none(name, line, opt):
-            name, line, z, volt, opt= self.user_input(volt)
+            name, line, z, volt, opt = self.user_input(volt)
             # volt can be specified if the others are not
 
         # Atomic Symbol
@@ -27,13 +27,15 @@ class AtomicElement(object):
         self.line = line
         # Accelerating voltage used for this element
         self.volt = volt
+        # Options for analysis((S)toic, (C)omp, (D)iff, (E)lem)
+        self.opt = opt
 
         self.setup_vars()
 
         # Setup Unknowns/initial values (Place holders)
 
         # Working Concentration (Maybe Kratio and weight fraction)
-        self.ci = 0
+        self.c1 = 0
         # Log previous c values (clog[0]-values, clog[1]-setby)
         self.clog = [[0, 'init']]
 
@@ -291,7 +293,8 @@ if __name__ == '__main__':
     name = 'Mg'
     line = 'Ka'
     volt = 15
-    el = AtomicElement(name, line, volt)
+    opt = 'E'
+    el = AtomicElement(name, line, volt, opt)
     print 'name:', el.name
     print 'line:', el.name
     print 'mass:', el.mass

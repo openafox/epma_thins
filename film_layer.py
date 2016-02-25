@@ -41,11 +41,6 @@ class FilmLayer(object):
         self.thick = 0.0
         # Layer depth [Angs] (to top) (0 until calculated as part of an sample)
         self.depth = 0.0
-        # Absorbtion Coefficient [?] (chi)
-        self.chi = 0.0
-        # chi of overlayers [?] 
-        self.chiovl = 0.0
-
 
     def get_els(self, els=[]):
         """Get new elements to add to the layer: Returns AtomicElement object.
@@ -114,8 +109,9 @@ class FilmLayer(object):
 
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AtEl
-    Si = AtEl('Si', 'Ka')
-    o = AtEl('O', 'Ka')
-    layer = FilmLayer(els=[Si, o], rho=2.65)
-    print layer.els[0].mass
+    el1 = AtEl('Si', 'Ka', 40, 'E')
+    el2 = AtEl('O', 'Ka', 40, 'E')
+    layer = FilmLayer(els=[el1, el2], rho=2.65)
+    print 'mass', layer.els[0].mass
     layer2 = FilmLayer()
+    print 'rho', layer2.rho

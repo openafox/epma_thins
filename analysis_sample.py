@@ -24,7 +24,7 @@ class AnalysisSample(object):
     layers -- list of FilmLayer objects
         (these contain an els attribute -- list of AtomicElement objects)
     """
-
+    #need a samp.mode B or F
     def __init__(self, **kwargs):
         if len(kwargs) == 4:
             # Take Off Angle
@@ -48,6 +48,8 @@ class AnalysisSample(object):
             self.layers = self.get_layers([])
             # ph(rz) model type
             self.phimodel = self.get_phimodel
+        # cosecant of take off angle
+        self.csctheta = 1.0/np.sin(self.toa*180/np.pi)
         # Mass Absorption Coefficients
         self.get_macs()
 
@@ -119,18 +121,19 @@ class AnalysisSample(object):
             self.layers[i].fix = yes_no(mess, False)
             self.layers[i].fixlayer()
 
-    def find_ovl_macs(self, el1, layindex):
+    def find_ovl_macs(self, lar_p, el_p):
         """finds the wt. fraction averaged mass absorption coefficient of
-        overlayers for an element 'el1' in an underlying layer (layindex)
+        overlayers for an element 'el_p' in an underlying layer 'lar_p'
         """
 
-        el1.ovl_macs = [0 for i in self.layers]  # create list of zeros
+        layindex = self.layers.index(lar_p)
+        el_p.ovl_macs = [0 for i in self.layers]  # create list of zeros
         # surface to current layer
-        for lar, el2 in self:
-            i = self.layers.index(lar)
-            if i > layindex:
+        for lar_i, el_i in self:
+            i = self.layers.index(lar_i)
+            if i >= layindex:
                 # only calculate to current layer leave rest as zero
-                el1.ovl_macs[i] += el2.c1 * el1.mac[el2.name]
+                el_p.ovl_macs[i] += el_i.c1 * el_p.mac[el_i.name]
 
     def get_macs(self):
         """Get Mass Absorption Coefficients
@@ -138,6 +141,7 @@ class AnalysisSample(object):
         """
         for lar1, el1 in self:
             el1.mac = {}
+        # for all combinations of elements
         for (lar1, el1), (lar2, el2) in itertools.product(self, repeat=2):
                 # print el1.name, el2.name
                 if el2.name not in el1.mac:
@@ -296,13 +300,14 @@ if __name__ == '__main__':
     ti = AtEl('Ti', 'Ka', 15, 's')
     layer1 = FL(els=[Si, o], rho=2.65)
     layer2 = FL(els=[ti, o], rho=4.23)
-    sample = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
+    samp = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
                             phimodel='E')
     print 'defs done'
-    for lay, el in sample:
+    for lay, el in samp:
         print ('Element:', el.name, ' Macs', el.mac, 'layer',
-               sample.layers.index(lay))
+               samp.layers.index(lay))
     print ""
-    for lay, el in sample:
+    for lay, el in samp:
         print 'Element:', el.name, 'Density', lay.rho
-    # Need to add test of calc_thick0...
+    print "Done start test"
+    samp.calc_thick0()

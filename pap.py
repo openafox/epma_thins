@@ -17,17 +17,16 @@ cnc -- weightpercent
 
 import sys
 import numpy as np
-from layrelem import layrelem
 
 from atomic_element import AtomicElement as AtEl
 from film_layer import FilmLayer as FL
 from analysis_sample import AnalysisSample as AS
 
 # for coding purposes
-ti = AtEl('Ti', 'Ka', 15, 's')
-layer1 = FL(els=[Si, o], rho=2.65)
-layer2 = FL(els=[ti, o], rho=4.23)
-samp = AS(toa=40, volts=[15], layers=[layer1, layer2], phimodel='E')
+el_p = AtEl('Ti', 'Ka', 15, 's')
+layer1 = FL(els=['Si', 'o'], rho=2.65)
+lar_p = FL(els=[el_p, 'o'], rho=4.23)
+samp = AS(toa=40, volts=[15], layers=[layer1, lar_p], phimodel='E')
 ####################
 
 
@@ -39,8 +38,6 @@ def decel_pap(samp, el_p, line=None):
     """
     # Overvoltage Ratio
     u0 = el_p.e0/el_p.xray
-
-    z = 0.
     mavg = 0.
     javg = 0.
     for lar_i, el_i in samp:
@@ -85,10 +82,10 @@ def decel_pap(samp, el_p, line=None):
     qe = np.log(u0)/(el_p.xray**2*u0**mparam)  # [1]p36e10
     df = 0.0
     for k in range(0, 3):
-        t_k = 1.0 + p[k] - mparam
+        t_k = 1.0 + p_k[k] - mparam
         # [1]p36e11   (1/S)*qe [1]p36e13
-        df += ([u0/(v0 * mavg)](d_k[k] * (v0/u0)**p[k] *
-               (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0)/t**2)/qe)
+        df += ([u0/(v0 * mavg)](d_k[k] * (v0/u0)**p_k[k] *
+               (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0)/t_k**2)/qe)
     return df
 
 
@@ -130,8 +127,7 @@ def ppint2(a_k, b_k, r_k, chi, rhoz):
     return ppint2
 
 
-def papint(samp, lar_p, a_1, a_2, b_1, r_c, r_m, r_x, c, chiovl, dza,
-           csctheta):
+def papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x):
     """This program integrates the phi(rz) curve for PAP model.  4 cases
     need to be handled.  case 1) the phi(rz) curve of a bulk
     specimen (for example when the pure element standard x-ray
@@ -149,14 +145,15 @@ def papint(samp, lar_p, a_1, a_2, b_1, r_c, r_m, r_x, c, chiovl, dza,
     r_m -- position (rhoz) at max height (phi)
     """
 
+    layindex = samp.layers.index(lar_p)
     db2 = 0.0
-    mu = lar_p.chi * csctheta
+    mu = el_p.ovl_macs[layindex] * samp.csctheta
 
     # MAY NEED IF BULK CASE!!!
     # [[0.e-6, r_c],[r_c, r_x]]
 
     # upper integration bound (bottom of layer, top of next bellow)
-    u_bound = samp.layers[l_index - 1].depth
+    u_bound = samp.layers[layindex - 1].depth
     # lower integration bound (top of layer)
     l_bound = lar_p.depth
 
@@ -185,10 +182,8 @@ def papint(samp, lar_p, a_1, a_2, b_1, r_c, r_m, r_x, c, chiovl, dza,
                 ppint2(a_2, db2, r_m, mu, l_bound))
     else:
         pass
-        # Alert Error
+        #Alert Error
 
-    za1 = dza1
-    za2 = dza2
     dza = dza1 + dza2
     if dza < 0.0:
         dza = 1.e-11
@@ -197,12 +192,12 @@ def papint(samp, lar_p, a_1, a_2, b_1, r_c, r_m, r_x, c, chiovl, dza,
     # Get T_A factor for [1]p50e35 (its on p 49)
     factor = 0.0
     for j in range(len(samp.layers), samp.layers.index(lar_p)):
-        factor += (samp.layers[j].thick*(samp.layers[j].chiovl * csctheta -
-                   lar_p.chi * csctheta))
+        factor += (samp.layers[j].thick*(el_p.ovl_macs[j] *
+                   samp.csctheta - el_p.ovl_macs[layindex] * samp.csctheta))
 
-    if icase == len(nel) - 1 or icase == -1:  # top layer or bulk
+    if layindex == len(samp.layers) - 1:  # top layer or bulk
         return dza
-    dza = dza*np.exp(-1.0*min(factor, 88.0))
+    dza = dza*np.exp(-1.0*factor)
     return dza
 
 
@@ -225,15 +220,16 @@ def papwt(samp1, L, R):  # remove the 1 after coding
         wt = xnorm*(ppint1(b, L, R) - ppint1(a, L, R))
         el_i.c1 = el_i.wtfrac * wt
 
+    #Fix this
     csum = np.asarray([el_i.c1 for lar_i, el_i in samp])
-    el_i.c1 = el_i.c1/csum for lar_i, el_i in samp
+    el_i.c1 = [el_i.c1/csum for lar_i, el_i in samp]
 
 
-def pap(samp1, el_p):
+def pap(samp1, lar_p, el_p, caller):
+    "PAP"
+    #figure out caller thing
     # initialize variables
-
-    # cosecant of take off angle
-    csctheta = 1.0/np.sin(samp.toa*180/np.pi())
+    layindex = samp.layers.index(lar_p)
     u0 = el_p.e0/el_p.xray
     # Ionization Depth (Max depth)
     rt = 7.0e-6*el_p.e0**1.65  # [g/cm2] # R in eq 16 [RAW-MAS-88]
@@ -246,11 +242,11 @@ def pap(samp1, el_p):
     samp.get_layers_depth()
 
     # Calculate starting compositions [RAW-MAS-88]
-    if mode == 'F':
+    if samp.mode == 'F':
         # find element contrabutions
         for lar_i, el_i in samp:
-            i = samp.layers.index(lar)
-            if i = len(samp.layers):  # Top Layer
+            i = samp.layers.index(lar_i)
+            if i == len(samp.layers):  # Top Layer
                 # DOCS [RAW - starts] eq2
                 el_i.ci = el_i.ci*(2.0*lar_i.thick/rt - lar_i.thick**2/rt**2)
             elif i == 0:  # substrate
@@ -279,7 +275,7 @@ def pap(samp1, el_p):
         el_i.c1 = el_i.c1/sum1
 
     while True:  # 1
-        iter += 1
+        iter1 += 1
         # Total Trajectory [g/cm^2]  [1]p35
         dr0 = decel_pap(samp, el_p)
 
@@ -301,7 +297,7 @@ def pap(samp1, el_p):
         r_x = Q_c*d_lu0*dr0
         # ####################################################################
 
-        if mode != 'B':
+        if samp.mode != 'B':
             # in GMRFilm weighing the initial C (C_m-1, cnc) not new Ci
             # and not the new one (C_m, c1)???????????
             # Changed here to el_ci because it make more sense to use it but
@@ -309,12 +305,12 @@ def pap(samp1, el_p):
 
             if np.abs(r_x*1.e6 - rt*1.e6) > 0.02:
                 # stop if diffrence is less than 1%??  is 0.02 = 1%?
-                c1 = papwt(samp, -0.4*r_x, r_x)
+                el_p.c1 = papwt(samp, -0.4*r_x, r_x)
                 # starting weighting
                 # [1]p54
                 rt = r_x
             else:
-                c1 = papwt(samp, -0.4*r_x, 0.5*r_x)
+                el_p.c1 = papwt(samp, -0.4*r_x, 0.5*r_x)
                 #near surface...???
                 # pg54 is it L = -0.4R(paper) or L= -0.4Rx(here)?
                 # above it did not matter bc R=Rx but here R=Rx/2
@@ -343,15 +339,15 @@ def pap(samp1, el_p):
     # Surface Ionization ([1]p60 appendix 2)
     dphi0 = 1.0 + 3.3*(1.0 - (1.0/u0**(2.0 - 2.3*eta)))*eta**1.2
 
-    if mode == 'F':
-        c1 = papwt(samp, -0.6*r_x, 0.7*r_x)
+    if samp.mode == 'F':
+        el_p.c1 = papwt(samp, -0.6*r_x, 0.7*r_x)
         # Leads to mean atomic number in 1/S (decel) calc??
         # pg54 is it L = -0.6R(paper) or L= -0.6Rx(here)?
 
     # Ionization Crossection
     df = rb*decel_pap(samp, el_p, el_p.line)
 
-    if mode == 'F':
+    if samp.mode == 'F':
         z_mean = (z_mean + zb)/2.0   # Not sure why RAW did this...
         # I currently have not found it in any of the PAPers
 
@@ -384,7 +380,7 @@ def pap(samp1, el_p):
             print ('!!!Warning!!! overvoltage ratio is too low for %s %s\n'
                    'Rm lowered from %7.2f to %7.2f to calculate parameters;'
                    '\nCalling routine:%s'
-                   % (el, line, rmt*1.0e6, r_m*1.0e6, callerb))
+                   % (el_p.name, el_p.line, rmt*1.0e6, r_m*1.0e6, callerb))
 
     # Root (rho z where two parabolas meet) [1]p38e17
     r_c = 1.5*((df - dphi0 * r_x/3.0)/dphi0 -
@@ -394,42 +390,18 @@ def pap(samp1, el_p):
     a_2 = a_1*(r_c - r_m)/(r_c - r_x)
     b_1 = dphi0 - a_1*r_m*r_m
 
-    """  I have no idea what this was for....
-    if i != 16: # goto 451
-        ### Need to figure out this i1, i2 mess
-        i1 = 1
-        i2 = nel[len(nel) - 1]
-        layer = layrelem(nel,i)
-        if caller == 'F' or caller == 'B':
-            chi = 0.0
-            chiovl = np.zeros(len(nel))
-            # do 447 n=1,7
-            # chiovl(n)=0.
-        elif mode != 'B':  # goto 449
-            if layer >= 2:
-                chiolv = chiov(mac, i, nel, layer, cnc)
-            for kk in range(0,
-                if (layer != kk):
-                    i1 = i1 + nel[kk]
-                    i2 = i2 + nel[kk+1]
-        # 449
-        chi = 0.0
-        for j in range(i1, i2):
-            chi = chi + cnc[j]*mac(i,j)
-        # 451
-        if mode = 'B':
-            layer = 0 # 8  #???  in orriginal below sub???
-        """
+    # cal Chi of overlayers and current layer
+    samp.find_ovl_macs(el_p, layindex)
+#here
+    # run the pap intiger
+    dza = papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x)
 
-    papint(adelta, layer, a_1, a_2, b_1, r_c, r_m, r_x,
-           chi, chiovl, dza1, csctheta)
-    za(2) = df
-    za(1) = dza1
-
-    return (a_1, b_1, a_2, r_m, r_c, r_x)
+    return (a_1, b_1, a_2, r_m, r_c, r_x, dza)
 
 
 if __name__ == '__main__':
+    # Need to set this up to test the pap - getting close to test 2/22/16
+    from analysis_sample import AnalysisSample
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
     Si = AtEl('Si', 'Ka', 15, 's')
@@ -446,4 +418,3 @@ if __name__ == '__main__':
     print ""
     for lay, el in samp:
         print 'Element:', el.name, 'Density', lay.rho
-    # Need to add test of calc_thick0...
