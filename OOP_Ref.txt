@@ -1,0 +1,65 @@
+Analysis Sample
+            self.toa
+            self.volts
+            self.layers
+            self.phimodel
+
+            self.csctheta
+
+    def get_layers(self, layers=[]):
+    def get_phimodel():
+    def update_layers_depth(self):
+    def get_volts(self):
+    def check_volts(self):
+    def get_toa(self):
+    def fixlayers(self):
+    def find_ovl_macs(self, el1, layindex):
+    def get_macs(self):
+        el1.mac[el2.name]
+    def qe0(self, el, volt, phimodel=None):
+    def get_valences(self):
+    def calc_stoich(self):
+    def calc_thick0(self):
+
+
+Film Layer
+        self.fix
+        self.els
+        self.rho
+    def get_els(self, els=[]):
+    def get_dens(self):
+    def fixlayer(self):
+
+Atomic Element(self, name=None, line=None, volt=None, opt=None):
+
+el_p.ovl_macs[i]
+el1.mac[el2.name]
+        # Working Concentration (Maybe Kratio and weight fraction)
+        self.ci = 0
+        # Log previous c values (clog[0]-values, clog[1]-setby)
+        self.clog = [[0, 'init']]
+        # Get element data from tables or calculation
+        # Electron shell e.g. K, L1, M1, N1
+        self.shell = self.get_shell()
+        # Fluorescence Yields
+        self.omega = self.get_omega()
+        # Number of electrons in the ionized shell.
+        self.znl = self.get_znl()
+        # JUMP Ratios
+        self.rjump = self.get_rjump()
+        # EFFective Fluorescence YieLD
+        self.effyld = self.get_effyld()
+        # TRaNSition PROBability of line after shell ionization
+        self.trnsprob = self.get_trnsprob()
+        self.mass = float(data[cols.index('Mass')])
+
+        self.edge = edge if edge > 0.0 else 50000.0
+
+        self.ck = float(
+
+        self.xray = xray
+
+
+
+Mac
+
