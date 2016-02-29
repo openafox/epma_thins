@@ -1,3 +1,7 @@
+ToDo
+Finish This
+make way for element to suggest line if energy is too low...
+
 Analysis Sample
             self.toa
             self.volts

@@ -75,16 +75,6 @@ class AtomicElement(object):
         # Get element data from tables or calculation
         # Electron shell e.g. K, L1, M1, N1
         self.shell = self.get_shell()
-        # Fluorescence Yields
-        self.omega = self.get_omega()
-        # Number of electrons in the ionized shell.
-        self.znl = self.get_znl()
-        # JUMP Ratios
-        self.rjump = self.get_rjump()
-        # EFFective Fluorescence YieLD
-        self.effyld = self.get_effyld()
-        # TRaNSition PROBability of line after shell ionization
-        self.trnsprob = self.get_trnsprob()
 
         with open('atomic_data.txt', 'r') as data_file:
             for row in data_file:
@@ -114,9 +104,19 @@ class AtomicElement(object):
                     else:
                         50000.0
                         user_alert('X-Ray emmision line not valid for'
-                                   'element\n X-Ray energy set to 50MeV.'
+                                   'element %s\n X-Ray energy set to 50MeV.'
                                    '\nPlease select another line to prevent'
-                                   'anomalous calculations!')
+                                   'anomalous calculations!' %self.name)
+        # Fluorescence Yields
+        self.omega = self.get_omega()
+        # Number of electrons in the ionized shell.
+        self.znl = self.get_znl()
+        # JUMP Ratios
+        self.rjump = self.get_rjump()
+        # EFFective Fluorescence YieLD
+        self.effyld = self.get_effyld()
+        # TRaNSition PROBability of line after shell ionization
+        self.trnsprob = self.get_trnsprob()
 
     def get_rjump(self, z=None, shell=None):
         if all_or_none(z, shell):
@@ -176,12 +176,12 @@ class AtomicElement(object):
         if el.shell[0] != 'L':
             effyld = el.omega
         elif el.shell[0] == 'L':
-            rj1 = self.get_rjump(el.z, 2)
-            rj2 = self.get_rjump(el.z, 3)
-            rj3 = self.get_rjump(el.z, 4)
-            l1 = self.get_data(el.z, 'Lb3')
-            l2 = self.get_data(el.z, 'Lb1')
-            l3 = self.get_data(el.z, 'La1')
+            rj1 = self.get_rjump(el.z, 'L1')
+            rj2 = self.get_rjump(el.z, 'L2')
+            rj3 = self.get_rjump(el.z, 'L3')
+            l1 = get_data(el.z, 'Lb3')
+            l2 = get_data(el.z, 'Lb1')
+            l3 = get_data(el.z, 'La1')
             if el.shell == 'L1':
                 effyld = el.omega
             elif el.shell == 'L2':

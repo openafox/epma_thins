@@ -17,17 +17,11 @@ cnc -- weightpercent
 
 import sys
 import numpy as np
+import matplotlib.pyplot as plt
 
 from atomic_element import AtomicElement as AtEl
 from film_layer import FilmLayer as FL
 from analysis_sample import AnalysisSample as AS
-
-"""# for coding purposes
-el_p = AtEl('Ti', 'Ka', 15, 's')
-layer1 = FL(els=['Si', 'o'], rho=2.65)
-lar_p = FL(els=[el_p, 'o'], rho=4.23)
-samp = AS(toa=40, volts=[15], layers=[layer1, lar_p], phimodel='E')
-"""####################
 
 
 def decel_pap(samp, el_p, line=None):
@@ -44,7 +38,7 @@ def decel_pap(samp, el_p, line=None):
     for lar_i, el_i in samp:
         # [1]p35e6
         m_i = el_i.z / el_i.mass * el_i.c1
-        mavg +=  m_i
+        mavg += m_i
         # [1]p35e7
         # need to check refs for full explination of where this comes from
         j_i = el_i.z*(10.04 + 8.25*np.exp(-1.0*el_i.z/11.22))/1000.  # keV
@@ -82,8 +76,8 @@ def decel_pap(samp, el_p, line=None):
             p1 = 1.0 + p_k[k]
             p2 = 1.0 - p_k[k]
             # Total Trajectory [g/cm^2]  [1]p35e9
-            dr0 += 1/mavg*(j_mip**p2*d_k[k])*(el_p.volt**p1 -
-                    (el_p.xray/1000.)**p1)/p1
+            dr0 += (1/mavg*(j_mip**p2*d_k[k])*(el_p.volt**p1 -
+                    (el_p.xray/1000.**p1))/p1)
             # updated with E0-Eq need to find ref
         return dr0
     # Ionization crosssection [1]p36e10-11
@@ -418,27 +412,53 @@ def pap(samp, lar_p, el_p, caller):
 
 if __name__ == '__main__':
     # Need to set this up to test the pap - getting close to test 2/22/16
-    from analysis_sample import AnalysisSample
-    from atomic_element import AtomicElement as AtEl
-    from film_layer import FilmLayer as FL
-    import matplotlib.pyplot as plt
-    el_p = AtEl('Cu', 'Ka', 15, 'E')
-    layer1 = FL(els=[el_p], rho=4.23)
-    samp = AnalysisSample(toa=40, volts=[15], layers=[layer1], phimodel='E')
-    # Test Electron Deceleration Calculations
+    # Copper Bulk
+    el_Cu = AtEl('Cu', 'Ka', 15, 'E')
+    layer_Cu = FL(els=[el_Cu], rho=4.23)
+    samp_Cu = AS(toa=40, volts=[15], layers=[layer_Cu],
+                             phimodel='E')
+    # Test Electron Deceleration Calculations fig 4 in [1]
     keV = np.logspace(-2, 2, 100)
     pap_dec = []
     bethe_dec = []
     for V in keV:
-        el_p.volt = V
-        out = decel_pap(samp, el_p, 'dE/dps')
+        el_Cu.volt = V
+        out = decel_pap(samp_Cu, el_Cu, 'dE/dps')
         pap_dec.append(out[0])
         bethe_dec.append(out[1])
-    ax = plt.subplot2grid((1, 1), (0, 0))
-    ax.plot(keV, np.asarray(pap_dec), 'b-')
-    ax.plot(keV, np.asarray(bethe_dec), 'r-')
+    ax = plt.subplot2grid((1, 2), (0, 0))
+    ax.plot(keV, np.asarray(pap_dec), 'b-', label="PAP")
+    ax.plot(keV, np.asarray(bethe_dec), 'r-', label="Bethe")
     ax.set_xlabel('Accelerating energy [keV]')
     ax.set_ylabel('Average energy loss [keV cm2/g]')
     ax.set_xscale("log")
+    ax.set_title('Election Deceleration')
+    ax.legend(loc=2)
     ax.set_ylim([0, 1e5])
+    # Make fig 5 in [1]
+    els = [('Cu', 'Ka'), ('B', 'Ka'), ('Au', 'La1')]
+    keV = np.logspace(-1, 2, 100)
+    # Bulk
+    Rs = []
+    for el in els:
+        el_p = AtEl(el[0], el[1], 15, 'E')
+        layer_p = FL(els=[el_p], rho=4.23)
+        samp = AS(toa=40, volts=[15], layers=[layer_p],
+                              phimodel='E')
+        R_p = []
+        for V in keV:
+            el_p.volt = V
+            R_p.append(decel_pap(samp, el_p))
+        Rs.append(R_p)
+    ax = plt.subplot2grid((1, 2), (0, 1))
+    ax.plot(keV, np.asarray(Rs[0])*1000, 'b-', label="Cu")
+    ax.plot(keV, np.asarray(Rs[1])*1000, 'r-', label="B")
+    ax.plot(keV, np.asarray(Rs[2])*1000, 'g-', label="Au")
+    ax.set_xlabel('Accelerating energy [keV]')
+    ax.set_ylabel('Total Range [mg/cm2]')
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+    ax.set_title('Election Path')
+    ax.set_ylim([0.001, 10])
+    ax.legend(loc=2)
     plt.show()
