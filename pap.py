@@ -2,9 +2,9 @@
 """
 Calculates x-ray intensities using PAP model.
 
-[1]J.-L. Pouchou and F. Pichoir, “Quantitative analysis of homogeneous or
-stratified microvolumes applying the model ‘PAP’”
-in Electron probe quantitation, Springer, 1991, pp. 31–75.
+[1]J.L. Pouchou and F. Pichoir, "Quantitative analysis of homogeneous or
+stratified microvolumes applying the model 'PAP'"
+in Electron probe quantitation, Springer, 1991, pp. 31-75.
 
 Vars of note:
 c1 --  ??  weight concentration of analyzed element
@@ -22,12 +22,12 @@ from atomic_element import AtomicElement as AtEl
 from film_layer import FilmLayer as FL
 from analysis_sample import AnalysisSample as AS
 
-# for coding purposes
+"""# for coding purposes
 el_p = AtEl('Ti', 'Ka', 15, 's')
 layer1 = FL(els=['Si', 'o'], rho=2.65)
 lar_p = FL(els=[el_p, 'o'], rho=4.23)
 samp = AS(toa=40, volts=[15], layers=[layer1, lar_p], phimodel='E')
-####################
+"""####################
 
 
 def decel_pap(samp, el_p, line=None):
@@ -37,16 +37,19 @@ def decel_pap(samp, el_p, line=None):
         [1] pages 34-6
     """
     # Overvoltage Ratio
-    u0 = el_p.e0/el_p.xray
+    u0 = el_p.volt/(el_p.xray/1000.)
     mavg = 0.
     javg = 0.
+    bethe = 0.
     for lar_i, el_i in samp:
         # [1]p35e6
-        mavg += el_i.z / el_i.mass * el_i.c1
+        m_i = el_i.z / el_i.mass * el_i.c1
+        mavg +=  m_i
         # [1]p35e7
         # need to check refs for full explination of where this comes from
-        javg += (el_i.c1 * el_i.z / el_i.mass *
-                 np.log(el_i.z*(10.04 + 8.25*np.exp(-1.0*el_i.z/11.22))/1000.))
+        j_i = el_i.z*(10.04 + 8.25*np.exp(-1.0*el_i.z/11.22))/1000.  # keV
+        bethe += m_i*np.log(1.166*el_p.volt/j_i)
+        javg += (el_i.c1 * el_i.z / el_i.mass * np.log(j_i))
 
     j_mip = np.exp(javg/mavg)  # mean ionization potential of each [1]p35e6
 
@@ -59,6 +62,19 @@ def decel_pap(samp, el_p, line=None):
            1.12e-5*(1.35 - 0.45*(j_mip**2)),
            2.2e-6/j_mip]
 
+    if line == 'dE/dps':
+        # find just the average energy loss (for checking) [1]p34e5
+        f_V = 0
+        for k in range(0, 3):
+            f_V += (d_k[k]*(el_p.volt/j_i)**(p_k[k]))
+        pap_dec = (mavg/j_i)*(1.0/(f_V))
+
+        # Bethe
+        bethe_const = ((1.602e-19)**2*(6.023e23)/(8*np.pi*(8.854e-12)**2))/100
+        # ~ 78500
+        bethe_dec = bethe_const/el_p.volt*bethe
+        return pap_dec, bethe_dec
+
     if line is None:
         dr0 = 0.
         for k in range(0, 3):
@@ -66,7 +82,8 @@ def decel_pap(samp, el_p, line=None):
             p1 = 1.0 + p_k[k]
             p2 = 1.0 - p_k[k]
             # Total Trajectory [g/cm^2]  [1]p35e9
-            dr0 += 1/mavg*(j_mip**p2*d_k[k])*(el_p.e0**p1 - el_p.xray**p1)/p1
+            dr0 += 1/mavg*(j_mip**p2*d_k[k])*(el_p.volt**p1 -
+                    (el_p.xray/1000.)**p1)/p1
             # updated with E0-Eq need to find ref
         return dr0
     # Ionization crosssection [1]p36e10-11
@@ -79,7 +96,7 @@ def decel_pap(samp, el_p, line=None):
         mparam = 0.78
 
     v0 = el_p.e0/javg
-    qe = np.log(u0)/(el_p.xray**2*u0**mparam)  # [1]p36e10
+    qe = np.log(u0)/((el_p.xray/1000.)**2*u0**mparam)  # [1]p36e10
     df = 0.0
     for k in range(0, 3):
         t_k = 1.0 + p_k[k] - mparam
@@ -201,7 +218,7 @@ def papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x):
     return dza
 
 
-def papwt(samp1, L, R):  # remove the 1 after coding
+def papwt(samp, L, R):  # remove the 1 after coding
     """weighting subroutine for pap parameters
     """
     xnorm = 1.0/(ppint1(R, L, R) - ppint1(0.0, L, R))
@@ -225,7 +242,7 @@ def papwt(samp1, L, R):  # remove the 1 after coding
     el_i.c1 = [el_i.c1/csum for lar_i, el_i in samp]
 
 
-def pap(samp1, lar_p, el_p, caller):
+def pap(samp, lar_p, el_p, caller):
     "PAP"
     #figure out caller thing
     # initialize variables
@@ -404,17 +421,24 @@ if __name__ == '__main__':
     from analysis_sample import AnalysisSample
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
-    Si = AtEl('Si', 'Ka', 15, 's')
-    o = AtEl('O', 'Ka', 15, 's')
-    ti = AtEl('Ti', 'Ka', 15, 's')
-    layer1 = FL(els=[Si, o], rho=2.65)
-    layer2 = FL(els=[ti, o], rho=4.23)
-    samp = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
-                          phimodel='E')
-    print 'defs done'
-    for lay, el in samp:
-        print ('Element:', el.name, ' Macs', el.mac, 'layer',
-               samp.layers.index(lay))
-    print ""
-    for lay, el in samp:
-        print 'Element:', el.name, 'Density', lay.rho
+    import matplotlib.pyplot as plt
+    el_p = AtEl('Cu', 'Ka', 15, 'E')
+    layer1 = FL(els=[el_p], rho=4.23)
+    samp = AnalysisSample(toa=40, volts=[15], layers=[layer1], phimodel='E')
+    # Test Electron Deceleration Calculations
+    keV = np.logspace(-2, 2, 100)
+    pap_dec = []
+    bethe_dec = []
+    for V in keV:
+        el_p.volt = V
+        out = decel_pap(samp, el_p, 'dE/dps')
+        pap_dec.append(out[0])
+        bethe_dec.append(out[1])
+    ax = plt.subplot2grid((1, 1), (0, 0))
+    ax.plot(keV, np.asarray(pap_dec), 'b-')
+    ax.plot(keV, np.asarray(bethe_dec), 'r-')
+    ax.set_xlabel('Accelerating energy [keV]')
+    ax.set_ylabel('Average energy loss [keV cm2/g]')
+    ax.set_xscale("log")
+    ax.set_ylim([0, 1e5])
+    plt.show()
