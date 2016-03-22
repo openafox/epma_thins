@@ -1,6 +1,14 @@
-ToDo
-Finish This
-make way for element to suggest line if energy is too low...
+Working On:
+    Tracing GMRFilm
+        Tracing Standard - related somehow to EPMASTDS
+            Testing Phirzeq
+            Checking Phirzeq eqs
+
+Other:
+    This thing
+    make way for element to suggest line if energy is too low...
+    what is el.flag?   flags
+    what is ff in std and phirhoz
 
 Analysis Sample
             self.toa
