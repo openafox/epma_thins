@@ -52,6 +52,13 @@ class AnalysisSample(object):
         self.csctheta = 1.0/np.sin(self.toa*180/np.pi)
         # Mass Absorption Coefficients
         self.get_macs()
+        # Mode
+        if len(self.layers) == 1:
+            self.mode = 'B'
+        elif len(self.layers) > 1:
+            self.mode = 'F'
+        else:
+            raise ValueError('Error: No Layers')
 
     def get_layers(self, layers=[]):
         """Get new layers to add to the sample:

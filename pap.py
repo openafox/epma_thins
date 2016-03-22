@@ -41,10 +41,10 @@ def decel_pap(samp, el_p, line=None):
         mavg += m_i
         # [1]p35e7
         # need to check refs for full explination of where this comes from
+        # symplified version is from Felix Block - 10*z
         j_i = el_i.z*(10.04 + 8.25*np.exp(-1.0*el_i.z/11.22))/1000.  # keV
         bethe += m_i*np.log(1.166*el_p.volt/j_i)
         javg += (el_i.c1 * el_i.z / el_i.mass * np.log(j_i))
-
     j_mip = np.exp(javg/mavg)  # mean ionization potential of each [1]p35e6
 
     # [1]p35e8
@@ -89,14 +89,15 @@ def decel_pap(samp, el_p, line=None):
     elif line[0] == 'M':
         mparam = 0.78
 
-    v0 = el_p.e0/javg
+    v0 = el_p.volt/j_mip
     qe = np.log(u0)/((el_p.xray/1000.)**2*u0**mparam)  # [1]p36e10
     df = 0.0
     for k in range(0, 3):
         t_k = 1.0 + p_k[k] - mparam
         # [1]p36e11   (1/S)*qe [1]p36e13
-        df += ([u0/(v0 * mavg)](d_k[k] * (v0/u0)**p_k[k] *
-               (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0)/t_k**2)/qe)
+        df += ((u0/(v0 * mavg)) *
+               (d_k[k]*(v0/u0)**(p_k[k]) * 
+               (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0) /t_k**2)/qe)
     return df
 
 
@@ -160,6 +161,9 @@ def papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x):
     db2 = 0.0
     mu = el_p.ovl_macs[layindex] * samp.csctheta
 
+    #added
+    dza1 = 0
+    dza2 = 0
     # MAY NEED IF BULK CASE!!!
     # [[0.e-6, r_c],[r_c, r_x]]
 
@@ -212,7 +216,7 @@ def papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x):
     return dza
 
 
-def papwt(samp, L, R):  # remove the 1 after coding
+def papwt(samp, L, R):
     """weighting subroutine for pap parameters
     """
     xnorm = 1.0/(ppint1(R, L, R) - ppint1(0.0, L, R))
@@ -241,16 +245,16 @@ def pap(samp, lar_p, el_p, caller):
     #figure out caller thing
     # initialize variables
     layindex = samp.layers.index(lar_p)
-    u0 = el_p.e0/el_p.xray
+    u0 = el_p.volt/(el_p.xray/1000.)
     # Ionization Depth (Max depth)
-    rt = 7.0e-6*el_p.e0**1.65  # [g/cm2] # R in eq 16 [RAW-MAS-88]
+    rt = 7.0e-6*el_p.volt**1.65  # [g/cm2] # R in eq 16 [RAW-MAS-88]
     # would it be more accurate to use the Eo-Ec eq7 in [RAW-MAS-88]
     sum1 = 0.0
 
     # thick0 should have already been run...???
-
+    samp.calc_thick0()
     # get film depths - samp.layer[i].depth
-    samp.get_layers_depth()
+    samp.update_layers_depth()
 
     # Calculate starting compositions [RAW-MAS-88]
     if samp.mode == 'F':
@@ -281,7 +285,7 @@ def pap(samp, lar_p, el_p, caller):
 
     iter1 = 0
     # Normalize C1 eq13 (eqs above are c1=c1*k??)
-    sum1 = np.sum(np.asarray((el_i.c1 for (lar, el_i) in samp)))
+    sum1 = np.sum(np.asarray([el_i.c1 for (lar, el_i) in samp]))
     for lar, el_i in samp:
         el_i.c1 = el_i.c1/sum1
 
@@ -297,7 +301,7 @@ def pap(samp, lar_p, el_p, caller):
         # Calc
         q0 = 1.0 - 0.535*np.exp(-(21.0/z_ln)**1.2) - 0.00025*(z_ln/20.0)**3.5
         beta = 40.0/z_mean
-        operand = min([(u0-1.0)/beta, 88.0])  # why limit to 88 ? fromGRMFilm
+        operand = (u0-1.0)/beta  # was limited to 88
         # Emperical factor adjusting the Range of Ionization
         Q_c = q0 + (1.0 - q0)*np.exp(-operand)
         # factor
@@ -388,7 +392,7 @@ def pap(samp, lar_p, el_p, caller):
         #  routine is either bulk or film fluorescence
 
         if caller == 'E' or caller == 'C' or caller == 'I':
-            print ('!!!Warning!!! overvoltage ratio is too low for %s %s\n'
+            user_alert ('!!!Warning!!! overvoltage ratio is too low for %s %s\n'
                    'Rm lowered from %7.2f to %7.2f to calculate parameters;'
                    '\nCalling routine:%s'
                    % (el_p.name, el_p.line, rmt*1.0e6, r_m*1.0e6, callerb))
@@ -402,7 +406,7 @@ def pap(samp, lar_p, el_p, caller):
     b_1 = dphi0 - a_1*r_m*r_m
 
     # cal Chi of overlayers and current layer
-    samp.find_ovl_macs(el_p, layindex)
+    samp.find_ovl_macs(lar_p, el_p)
 #here
     # run the pap intiger
     dza = papint(samp, lar_p, el_p, a_1, a_2, b_1, r_c, r_m, r_x)
@@ -417,6 +421,7 @@ if __name__ == '__main__':
     layer_Cu = FL(els=[el_Cu], rho=4.23)
     samp_Cu = AS(toa=40, volts=[15], layers=[layer_Cu],
                              phimodel='E')
+    """
     # Test Electron Deceleration Calculations fig 4 in [1]
     keV = np.logspace(-2, 2, 100)
     pap_dec = []
@@ -461,4 +466,7 @@ if __name__ == '__main__':
     ax.set_title('Election Path')
     ax.set_ylim([0.001, 10])
     ax.legend(loc=2)
-    plt.show()
+    plt.show()"""
+    # Test PAP Need to find a way to actually test...
+    print pap(samp_Cu, layer_Cu, el_Cu, 'I')
+
