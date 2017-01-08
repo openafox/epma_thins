@@ -41,6 +41,9 @@ class FilmLayer(object):
         self.thick = 0.0
         # Layer depth [Angs] (to top) (0 until calculated as part of an sample)
         self.depth = 0.0
+        #layer weighting functions
+        self.lwt = 0.0
+        self.lwt2 = 0.0
 
     def get_els(self, els=[]):
         """Get new elements to add to the layer: Returns AtomicElement object.

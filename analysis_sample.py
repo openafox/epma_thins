@@ -14,6 +14,7 @@ from film_layer import FilmLayer
 import numpy as np
 from mac import Mac
 import itertools
+from scipy.special import erfc
 
 
 class AnalysisSample(object):
@@ -77,6 +78,48 @@ class AnalysisSample(object):
         for i in range(len(self.layers) - 1, 0, -1):
             self.layers[i].depth = depth
             depth += self.layers[i].thick
+
+    def layer_scale(self, alpha):
+        """-------------------------------SCALE------------------------------------
+
+        for thin films, the parameter values used in the phi(rz) equation
+        to calculate x-ray intensity will depend on layer thickness;
+        substrate parameter values will predominate for thin films,
+        layer values will predominate for thicker films
+
+        weightings of the various layers and substrate are calculated
+        phi(0) and beta weights are based on erfc(2A*D)
+        [COMP.ERROR.FTN(2*ALPHA*DELTA)]
+        while alpha and beta are apportioned based on   'erfc(A*D)'
+        the difference is due to the backscattering effect on phi0
+        program completed 4/87 by richard a. waldo
+
+        Keyword arguments:
+        lwt -- layer weight
+        alpha --
+        """
+        lay = len(samp.layers) - 1
+        if (samp.layers[lay].thick == 0.):
+            samp.layers[lay].lwt = 1.
+            samp.layers[lay].lwt2 = 1.
+            return
+        d = 0.
+        wtsum1 = 0.
+        wtsum2 = 0.
+        for lay_i, el_i in samp:
+            d1 = d + lay_i.thick
+            if (lay_i.thick > 0.):
+                lay_i.lwt = erfc(alpha*d) - erfc(alpha*d1)
+                lay_i.lwt2 = erfc(2.*alpha*d) - erfc(2.*alpha*d1)
+            else:
+                lay_i.lwt = 0.
+                lay_i.lwt2 = 0.
+            wtsum1 = wtsum1 + lay_i.lwt
+            wtsum2 = wtsum2 + lay_i.lwt2
+            d = d1
+        samp.layers[0].lwt = 1. - wtsum1
+        samp.layers[0].lwt2 = 1. - wtsum2
+        return
 
     def get_phimodel():
         """gets desired phi(rz) model from user"""
