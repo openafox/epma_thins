@@ -297,15 +297,15 @@ if __name__ == '__main__':
     volt = 15
     opt = 'E'
     el = AtomicElement(name, line, volt, opt)
-    print 'name:', el.name
-    print 'line:', el.name
-    print 'mass:', el.mass
-    print 'absorption edge[kV]', el.edge
-    print 'electron shell', el.shell
-    print 'fluorescence yields', el.omega
-    print 'effective yield', el.effyld
-    print 'number of electrons in the ionized shell', el.znl
-    # print 'coster-kronig coefficients', el.ck
+    print('name:', el.name)
+    print('line:', el.name)
+    print('mass:', el.mass)
+    print('absorption edge[kV]', el.edge)
+    print('electron shell', el.shell)
+    print('fluorescence yields', el.omega)
+    print('effective yield', el.effyld)
+    print('number of electrons in the ionized shell', el.znl)
+    # print('coster-kronig coefficients', el.ck
     # commented out for now, need to know how to choose which one
-    print 'x-ray emmision line energy [KeV]', el.xray
+    print('x-ray emmision line energy [KeV]', el.xray)
     el = AtomicElement(name)

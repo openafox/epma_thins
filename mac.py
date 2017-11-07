@@ -231,4 +231,4 @@ if __name__ == '__main__':
     from atomic_element import AtomicElement as AE
     el1 = AE('Mg', 'Ka')
     el2 = AE('Si', 'Ka')
-    print mac(el1, el2)
+    print(mac(el1, el2))

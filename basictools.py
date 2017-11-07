@@ -62,7 +62,7 @@ def yes_no(prompt=None, default=True):
     true = ['Y', 'YES', 'TRUE', 'T', '1', 'ON']
     false = ['N', 'NO', 'FALSE', 'F', '0', 'OFF']
     while True:
-        choice = raw_input(prompt).upper()
+        choice = input(prompt).upper()
         if default is not None and choice == '':
             return default
         elif choice in true:
@@ -70,7 +70,7 @@ def yes_no(prompt=None, default=True):
         elif choice in false:
             return False
         else:
-            print "Please respond 'y' or 'n':"
+            print("Please respond 'y' or 'n':")
 
 
 def get_options(message, options=('Y', 'N'), default=None, count=False,
@@ -85,13 +85,13 @@ def get_options(message, options=('Y', 'N'), default=None, count=False,
     stop = False
     while True:
         if casesen == 'Capitalize':
-            var = raw_input(message).capitalize()
+            var = input(message).capitalize()
         elif casesen == 'Upper':
-            var = raw_input(message).upper
+            var = input(message).upper
         elif casesen == 'Lower':
-            var = raw_input(message).lower()
+            var = input(message).lower()
         elif casesen == 'Yes':
-            var = raw_input(message)
+            var = input(message)
 
         if default is not None and var == '':
             var = default
@@ -117,60 +117,60 @@ def get_nums(message, maxi=10e10, mini=0, **kwargs):
     """
 
     while True:
-        out = raw_input(message)
+        out = input(message)
         if 'default' in kwargs and out == '':
             out = kwargs['default']
         try:
             out = float(out)
             if out > maxi or out < mini:
-                print 'Must be between %d and %d.' % (mini, maxi)
+                print('Must be between %d and %d.' % (mini, maxi))
             else:
                 break
         except ValueError:
-            print "Oops!  That was not a valid number.  Try again..."
+            print("Oops!  That was not a valid number.  Try again...")
     if 'zeroval' in kwargs and out == 0:
         out = kwargs['zeroval']
     return out
 
 
 def get_string(message):
-    return raw_input(message)
+    return input(message)
 
 
 def out_data(header, data, width=10):
-    """print lists(matrix) as table with header of column width width
+    """print(lists(matrix)) as table with header of column width width
     Formatted this way to make gui creation easier
     """
 
     if type(header) != list and type(header) != tuple:
         raise ValueError('header must be of type list or tuple')
     row_format = "{:^{width}}" * (len(header))
-    print row_format.format(*header, width=width)
+    print(row_format.format(*header, width=width))
 
     if type(data) != list and type(data) != tuple:
         raise ValueError('data must be of type list or tuple')
     if type(data[0]) == list or type(data[0]) == tuple:
         for row in data:
             row_format = "{:^{width}}" * (len(row))
-            print row_format.format(*row, width=width)
+            print(row_format.format(*row, width=width))
     else:
             row_format = "{:^{width}}" * (len(data))
-            print row_format.format(*data, width=width)
+            print(row_format.format(*data, width=width))
 
 
 def user_alert(message):
-    print message
+    print(message)
 
 
 def wtfract(els, form):
     """Convert atomic formula to weight percent"""
     cnc = []
     form = np.asarray(form)
-    print form
+    print(form)
     masses = np.asarray([el.mass for el in els])
-    print masses
+    print(masses)
     sum_mass = np.sum(masses*form)
-    print sum_mass
+    print(sum_mass)
     cnc = (masses*form)/sum_mass
     return cnc
 
@@ -207,9 +207,9 @@ def safe_division_d(number, divisor, **kwargs):
 """
 
 if __name__ == '__main__':
-    # print yes_no("Q?")
-    # print get_nums("test", default=1, zeroval=-1)
-    # print get_options('el', 'els')
+    # print(yes_no("Q?"))
+    # print(get_nums("test", default=1, zeroval=-1))
+    # print(get_options('el', 'els'))
     # out_data(('#', '#'), ((1, 1), (2, 2)))
     # out_data(('#', '#'), (1, 1), width=15)
     # from atomic_element import AtomicElement as AtEl
@@ -217,8 +217,8 @@ if __name__ == '__main__':
     # o = AtEl('O', 'Ka')
     # els = [Si, o]
     # form = [1, 2]
-    # print wtfract(els, form)
-    # print 28.0/(28+16*2)
-    print all_or_none(None, None, None)
-    print all_or_none('3', '5', '6')
-    print all_or_none(None, '5', None)
+    # print(wtfract(els, form))
+    # print(28.0/(28+16*2))
+    print(all_or_none(None, None, None))
+    print(all_or_none('3', '5', '6'))
+    print(all_or_none(None, '5', None))

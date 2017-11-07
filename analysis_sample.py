@@ -193,7 +193,7 @@ class AnalysisSample(object):
             el1.mac = {}
         # for all combinations of elements
         for (lar1, el1), (lar2, el2) in itertools.product(self, repeat=2):
-                # print el1.name, el2.name
+                # print(el1.name, el2.name)
                 if el2.name not in el1.mac:
                     el1.mac[el2.name] = Mac(el1, el2)
 
@@ -324,7 +324,7 @@ class AnalysisSample(object):
         self.i = len(self.layers) - 1
         return self
 
-    def next(self):
+    def __next__(self):
         try:
             layer = self.layers[self.i]
             el = self.layers[self.i].els[self.j]
@@ -351,26 +351,26 @@ if __name__ == '__main__':
     layer2 = FL(els=[el3, el4], rho=4.23)
     samp = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
                             phimodel='E')
-    print 'defs done'
+    print('defs done')
     for lay, el in samp:
-        print ('Element:', el.name, ' Macs', el.mac, 'layer',
+        print('Element:', el.name, ' Macs', el.mac, 'layer',
                samp.layers.index(lay))
-    print ""
+    print("")
     for lay, el in samp:
-        print 'Layer:', samp.layers.index(lay), 'thickness:', lay.thick
-        print 'Element:', el.name, 'c1', el.c1
+        print('Layer:', samp.layers.index(lay), 'thickness:', lay.thick)
+        print('Element:', el.name, 'c1', el.c1)
     it = 0
     while True:
         it += 1
         thick1 = samp.layers[1].thick
         samp.calc_thick0()
         for lay, el in samp:
-            print 'Layer:', samp.layers.index(lay), 'thickness:', lay.thick
-            print 'Element:', el.name, 'c1', el.c1
-        print ""
+            print('Layer:', samp.layers.index(lay), 'thickness:', lay.thick)
+            print('Element:', el.name, 'c1', el.c1)
+        print("")
         if it > 20:
-            print "done it"
+            print("done it")
             break
         if abs(thick1 - samp.layers[1].thick) < 0.0001:
-            print "done diff"
+            print("done diff")
             break

@@ -115,6 +115,6 @@ if __name__ == '__main__':
     el1 = AtEl('Si', 'Ka', 40, 'E')
     el2 = AtEl('O', 'Ka', 40, 'E')
     layer = FilmLayer(els=[el1, el2], rho=2.65)
-    print 'mass', layer.els[0].mass
+    print('mass', layer.els[0].mass)
     layer2 = FilmLayer()
-    print 'rho', layer2.rho
+    print('rho', layer2.rho)

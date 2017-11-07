@@ -10,6 +10,26 @@ program completed 4/87  by richard a. waldo
 updated 10/88 for Bastin's nbs workshop model (1988), r.a. waldo
 NOTE: see also Scanning vol.12, 1990. p.225
 
+
+
+[1]    G. F. Bastin and H. J. M. Heijligers, “Quantitative Electron Probe
+    Microanalysis of Ultralight Elements(Boron-Oxygen),” SCANNING, vol. 12,
+    pp. 225–236, 1990.
+
+    Is this the same thing?  We shall see this is def the 88' papaer
+
+Bastin, G. & Heijligers, J. in Electron Probe Quantitation, Workshop at the
+National Bureau of Standards, Gaithersburg, Maryland (eds Heinrich, K.
+& Newbury, D.) 145–161 (Plenum, 1991)
+
+
+[2]    G. F. Bastin, H. J. M. Heijligers, and F. J. J. V. Loo, “A Further
+    Improvement in the Gaussian ϕ (ϱ) Approach for Matrix Correction in
+    Quantitative Electron Probe Microanalysis,” Scanning, vol. 8, no. 2,
+    pp. 45–67, 1986.
+
+
+
 Keyword arguments:
 A -- apple
 """
@@ -26,12 +46,15 @@ from scale import scale
 def phirzeq(samp, el_p, lay_p, ff):
     #what is ff - boolan
     e0 = el_p.volt
-    xline = el_p.xray/1000
-    u0 = e0/xline
+    Ec = el_p.xray/1000
+    u0 = e0/Ec
     alpha = 1.e6/(3.*e0**1.7)
     javg = 0.
     bsf = 0.
     zp = 0.
+    beta = 0.0
+    gamma = 0.0
+    phi0 = 0.0
     for k in range(0, 5):
         ajp = 0.
         z = 0.
@@ -43,13 +66,13 @@ def phirzeq(samp, el_p, lay_p, ff):
             if el_j.c1 == 0.:
                     el_j.c1 = 1.e-5
             if samp.phimodel == 'B':
-                "This is the Refrence for this"
+                "Bastin 86 in eq(14)- from Ruste 1979 "
                 el_j.aj = (9.29*el_j.z*(1.+1.287/el_j.z**0.667))/1000.
             elif samp.phimodel == 'C':
-                "This is the Refrence for this"
+                "Bastin 90 This is the Refrence for this"
                 el_j.aj = el_j.z*(10.04+8.25*np.exp(-1.*el_j.z/11.22))/1000.
             elif samp.phimodel == 'P':
-                "This is the Refrence for this"
+                "Packwood 86 This is the Refrence for this"
                 ajp = ajp + lay_j.lwt*el_j.c1*.0115*el_j.z
 
             za = za+(el_j.z/el_j.mass)*lay_j.lwt*el_j.c1
@@ -57,16 +80,19 @@ def phirzeq(samp, el_p, lay_p, ff):
             a = a+el_j.mass*lay_j.lwt*el_j.c1
         alpha = 0.
         for lay_i, el_i in samp:
+            norm = (lay_i.lwt*el_i.c1*el_i.z/el_i.mass)
             if samp.phimodel == 'B':
-                "This is the Refrence for this"
+                "Bastin 86 eq 14"
                 alpha += ((((175000./(e0**1.25*(u0-1.)**0.55)) *
-                            ((np.log(1.166*e0/el_i.aj)/xline)**0.5))**2) *
-                          (lay_i.lwt*el_i.c1*el_i.z/el_i.mass))
+                            ((np.log(1.166*e0/el_i.aj)/Ec)**0.5))**2) *
+                          norm)
+                # what is this last bit??
             elif samp.phimodel == 'C':
+                "This is the Refrence for this"
                 alpha += (1./((216140.*el_i.z**1.163 /
                                (e0**1.25*el_i.mass*(u0-1.)**0.5)) *
-                              ((np.log(1.166*e0/el_i.aj)/xline)**0.5)) *
-                          lay_i.lwt*el_i.c1*el_i.z/el_i.mass)
+                              ((np.log(1.166*e0/el_i.aj)/Ec)**0.5)) *
+                          norm)
         if samp.phimodel == 'B':
             "This is the Refrence for this"
             alpha = np.sqrt(a*alpha/z)
@@ -76,8 +102,8 @@ def phirzeq(samp, el_p, lay_p, ff):
         elif samp.phimodel == 'P':
             "This is the Refrence for this"
             alpha = ((415000./e0**0.75)*((z-1.3)/z)*(za**0.5) *
-                     (np.sqrt(za*np.log((1.166/ajp*(e0+xline)/2.)) /
-                              (e0**2-xline**2))))
+                     (np.sqrt(za*np.log((1.166/ajp*(e0+Ec)/2.)) /
+                              (e0**2-Ec**2))))
         if samp.layers[-1].thick == 0:  # if top layer thickness = 0
             break
         if (abs(alpha-talpha) < 1.):
@@ -85,6 +111,7 @@ def phirzeq(samp, el_p, lay_p, ff):
     if samp.phimodel == 'B':
         """calculate according to bastin scanning'86 paper"""
         for lay_i, el_i in samp:
+            # Love and Scott 78 - see more
             eta = (-52.3791 + 150.48371*el_i.z -
                    1.67373*el_i.z**2 + 0.00716*el_i.z**3)/10000.
             geta = (-1112.8 + 30.289*el_i.z - 0.15498*el_i.z**2)/10000.
@@ -93,7 +120,7 @@ def phirzeq(samp, el_p, lay_p, ff):
         gu = -0.59299 + 21.55329/u0 - 30.55248/u0**2 + 9.59218/u0**3
         iu = 3.43378 - 10.7872/u0 + 10.97628/u0**2 - 3.62286/u0**3
         phi0 = 1. + (bsf/(1. + bsf))*(iu + gu*np.log(1. + bsf))
-#
+        #
         if (u0 <= 3.):
             gamma = 1. + (u0 - 1)/(0.3384 + 0.4742*(u0 - 1))
         if (u0 > 3.):
@@ -147,7 +174,7 @@ def phirzeq(samp, el_p, lay_p, ff):
         rb = 1.0 - eta*wavg*(1. - gu)
         phi0 = 1. + 3.3*(1.0 - (1./u0**gamm))*eta**1.2
         # qe is ionization cross section at eO
-        qe = np.log(u0)/xline**2/u0**mparam
+        qe = np.log(u0)/Ec**2/u0**mparam
         v0 = e0/javg
         t7 = rb*(u0/v0)/za
         fk = 0
@@ -160,17 +187,20 @@ def phirzeq(samp, el_p, lay_p, ff):
                      (-1.25558*z**(-0.1424549))))
         elif (u0 > 6.0):
             gamma = 2.814333*u0**(0.262702*z**(-0.1614454))
-        if (xline < 0.7):
-            gamma = gamma*xline/(-.0418780 + 1.05975*xline)
+        if (Ec < 0.7):
+            gamma = gamma*Ec/(-.0418780 + 1.05975*Ec)
             (beta, flag) = bastbeta(alpha, gamma, phi0, fk)
         if flag:
             if not el_p.flag:
                 el_p.flag = True
                 if (not ff):
-                    print(' !!! 0>R(b/2a)>1 for element Z = %d, xline = %s !!!'
+                    print(' !!! 0>R(b/2a)>1 for element Z = %d, Ec = %s !!!'
                           '\n!!! Overvoltage ratio may be too low !!!'
                           % (el_p.z, el_p.line))
     return alpha, beta, gamma, phi0
+# phirzeq(nel,nels,i3,delta,alpha,beta,gamma,phi0
+#     &,z1,a1,cnc,e0,Ec,phipar,line,ff,z)
+
 
 
 def bastbeta(a, g, p, f):
@@ -204,7 +234,12 @@ def bastbeta(a, g, p, f):
 
 
 def rb2a(x):
-    """bastins's nbs workshop (1988) phi(rz) model
+    """G. F. Bastin and H. J. M. Heijligers, “Quantitative Electron Probe
+    Microanalysis of Ultralight Elements(Boron-Oxygen),” SCANNING, vol. 12,
+    pp. 225–236, 1990.
+
+
+    bastins's nbs workshop (1988) phi(rz) model
     NOTE: see also Scanning, Vol.12, 1990, p225."""
     if x < 0.03165:
         b = (1.0 - 4.894396*x)/(1.341313*x)
@@ -226,6 +261,72 @@ def rb2a(x):
         b = 0.9628832 - .9642440*x
     return b
 
+
+def integral(samp, el, lay, icase,wtalpha,wtbeta,gamsam, wtphi0):
+    # STILL NEED to check these eq
+    # think I am gonna need to find paper for this to get f3
+     # subroutine integral(delta,icase,wtalpha,wtbeta,gamsam
+     # &,wtphi0,chisam,chiovl,za,toa)
+
+    """this program integrates the phi(rz) curve.  four cases
+    need to be handled.  case 1) the phi(rz) curve of a bulk
+    specimen (for example when the pure element standard x-ray
+    intensity is needed to calculate a k-ratio.  case 2) the
+    curve for a thin film of thickness delta.  case 3)  the curve
+    for a substrate under a film of thickness delta, the curve is
+    integrated from delta to infinity.  case 4) the curve for a buried
+    film of thickness delta1.  for thin films, weighted
+    average values of the phi(rz) parameters are used (see
+    subprogram to see how the parameter vlues are weighted).
+
+    program completed 4/87 by richard a. waldo
+    """
+    c = np.sqrt(np.pi())/2.
+
+    g = gamsam
+    gp = gamsam - wtphi0
+    a1 = wtalpha
+    b = wtbeta
+
+    layindex = samp.layers.index(lar_p)
+    mu = el_p.ovl_macs[layindex] * samp.csctheta
+
+    # upper integration bound (bottom of layer, top of next bellow) (f2)
+    f2 = samp.layers[layindex - 1].depth
+    # lower integration bound (top of layer) (f1)
+    f1 = lar_p.depth
+    # f3??
+        f3 = 0.
+        do 100 j=1,icase-1
+          f3=f3+(chiovl(j)*csctheta-mu)*delta(j) # total adjusted chi overlayer
+
+    #what is this for??
+        if (icase.eq.7) f2=f1
+
+    t11 = mu/a1/2
+    t33 = (b+mu)/a1/2
+    t1 = erfc(t11)
+    t3 = erfc(t33)
+    t4a = np.exp(-1.*(2.*a1*f1*t11+(a1*f1)**2))
+    t4 = t4a*erfc((a1*f1)+t11)
+    t5a = np.exp(-1.*(2.*a1*f1*t33+(a1*f1)**2))
+    t5 = t5a*erfc((a1*f1)+t33)
+
+    if layindex == len(samp.layers):  # Top Layer
+        za = c*((g*(t1-t4))-(gp*(t3-t5)))/a1
+    else if layindex == 0:  # Substrate
+        za = c*(g*t1-gp*t3)/a1
+    else:  # Burried Layers
+        t6a = np.exp(-1.*(2.*a1*f2*t11+(a1*f2)**2))
+        t6 = t6a*erfc((a1*f2)+t11)
+        t7a = np.exp(-1.*(2.*a1*f2*t33+(a1*f2)**2))
+        t7 = t7a*erfc((a1*f2)+t33)
+        if layindex == 1:  # Bottom Layer
+            za = c*(((g*t6)-(gp*t7))/a1)*np.exp(-1.*f3)
+        else:
+            za = c*((g*(t4-t6))-(gp*(t5-t7)))/a1*np.exp(-1.*f3)
+    return za
+
 if __name__ == '__main__':
     from atomic_element import AtomicElement as AtEl
     from film_layer import FilmLayer as FL
@@ -238,4 +339,4 @@ if __name__ == '__main__':
     layer2 = FL(els=[el3, el4], rho=4.23)
     samp = AnalysisSample(toa=40, volts=[15], layers=[layer1, layer2],
                           phimodel='E')
-    phirzeq(samp, el_p, layer1, False)
+    print (phirzeq(samp, el_p, layer1, False))
