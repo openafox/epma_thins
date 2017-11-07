@@ -1,7 +1,5 @@
 ---
-mathjax: true
 ---
-
 
 ##checking the math in PAP eq39
 
