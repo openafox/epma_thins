@@ -36,6 +36,8 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+Icon*
+
 
 
 # Pyinstaller #
@@ -56,3 +58,4 @@ dist
 # Web stuff #
 #############
 MathJax
+
