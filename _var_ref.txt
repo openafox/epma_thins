@@ -11,13 +11,15 @@ Arguments:
     line -- X-Ray Emission Line ex. 'Ka' (symb(3:5))
     opt -- Element options (symb(6:6))
     shell -- electron shell (nedge, jedge)
-    mass -- Atomic Mass  (a, at, ax)
+    mass -- Atomic Mass [g/mol]  (a, at, ax)
     ecr -- Absorbtion edge [Kev]
     exciter -- Electrons or ?? (X-Rays)
     mode -- Film of Bulk
 
     mac -- Mass Absorption Coeficient
     absionrt -- Ionizations/Absorptions
+    
+    arfc - erfc  - imported from scipy special
 
     From bastbeta
     a --
@@ -28,7 +30,7 @@ Arguments:
     flag --
 
     From PAP and related
-    delta -- ??
+    delta -- film thickness
     cnc -- ??
     L -- ??
     R -- ??
@@ -73,7 +75,10 @@ Lists:
     lines -- X-Ray Absorption Edges
     els -- list of elemsnts
     e0 -- list of energies for elements???  I am not sure I get this, what do
+    xline = Ec - critical excitation
+
     you enter when it asks?
+
 
 Arrays (Numpy): These are list I will have to make into numpy arrays for math
     zs -- Atomic Numbers

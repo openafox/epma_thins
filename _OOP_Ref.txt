@@ -74,4 +74,60 @@ el1.mac[el2.name]
 
 
 Mac
+Currently working on:
+    Tracing from GMRfilm
+
+In progress:
+    pap
+    standard
+
+
+papwt.py
+    ppint1(x, L, R):
+    ppint2(a, b, r, c, x):
+    papwt(delta, cnc, nel, nels, L, R):   return c1
+
+
+get_data.py
+    get_data(z, dat)     return value
+    omega(z, nedge)    return omega
+    line_to_shell(line): return shell
+    znl(line): return znl
+    edge(z, line)     return edge
+    ck(z, j)      return ck
+    xray(z, line)    return xray
+    rjump(z, nedge)   return rjump
+    fix_el(el=None, z=None, line=None)   return el, z, line
+    lookup(el, line=None):     return (z, mass, ecr[if line != None])
+
+
+get_cfg.py
+    get_options(message, options=('Y', 'N'), defalt='N'):   return var
+    get_nums(message, maxi, mini, default):    return out
+    gettoa():    return toa
+    getcfg(cfg):    return cfg, mode, macchang
+    getvolt():     return cvolt, e0, voltages
+    getmodel():     return phipar
+    newvolt(nels, els, e0, mode):     return e0
+    newline(nels, els, e0, lines):     return (ec, lines)
+    macstd(z1, z2, mass, line, sy1, sy2, macchang, caller):   return xmu
+    elements(mode, voltages, stds0,stds1,stds2,standrd,voltages):
+
+wtfract(els, lines,form, nel): return(cnc)
+
+fixlayer(
+
+layrdens(nel): return rho
+
+trnsprob(z, line): return trnsprob
+
+layrelem(nel, j):      return (ne, layer)
+
+mu(zx1, zx2, line, ax2):   return xmu  ???
+
+mac(z, mass, xray):    return (xmu, iflag??)
+
+effyld(z, line, ?xenergy?, exciter):       return effyld
+
+paplimts(ad1,ad2,icase,rc,rx): return lim
 
