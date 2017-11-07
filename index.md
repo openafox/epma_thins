@@ -1,3 +1,8 @@
+---
+layout: default
+title: Home
+---
+
 epma_thins page
 
 Mathmatical checks

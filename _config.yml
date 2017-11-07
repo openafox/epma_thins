@@ -5,7 +5,7 @@ description: 'A place for Austin to collect his thoughts and share them with the
 
 baseurl: ""
 url: http://openafox.com
-#logo: '/public/logo.png'
+logo: '/public/logo.png'
 
 # Site configurations
 markdown: kramdown

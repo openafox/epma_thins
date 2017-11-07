@@ -1,11 +1,10 @@
 ---
-layout: post
-title:  "Welcome to Jekyll!"
+layout: default
+title:  Checking the math in PAP eq39
 date:   2017-11-07 13:26:30 -0800
-categories: jekyll update
 ---
 
-##checking the math in PAP eq39
+## Test
 
 Treating each electron individually and neglecting absorption effects we can
 estimate the thickness from eq 8.
