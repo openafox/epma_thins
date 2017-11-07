@@ -1,3 +1,4 @@
+mathjax: true
 ##checking the math in PAP eq39
 
 Treating each electron individually and neglecting absorption effects we can
