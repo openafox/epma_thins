@@ -1,4 +1,8 @@
 ---
+layout: post
+title:  "Welcome to Jekyll!"
+date:   2017-11-07 13:26:30 -0800
+categories: jekyll update
 ---
 
 ##checking the math in PAP eq39
