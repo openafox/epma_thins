@@ -11,7 +11,7 @@ Some of the code is a direct port from the original fortran code but much is not
 
 The working code can be found on [GitHub](https://github.com/openafox/epma_thins).
 
-If you would like to contribute please see CONTRIBUTING.md on GitHub. I really appreciate any help making this a reality.
+If you would like to contribute please see [contributing](/contributing). I really appreciate any help making this a reality.
 
 Some of the math has been checked from the initial publications (see the Math category).
 
