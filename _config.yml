@@ -3,11 +3,22 @@ title: Openafox
 tagline: "Austin Fox's personal website."
 description: 'A place for Austin to collect his thoughts and share them with the world.'
 
+# Sub Site Info
+project:
+  url: http://openafox.com/epma_thins
+  logo: ''
+  title: EPMA Thin Film Analysis
+  tagline: "Project site for epma_thins"
+  description: 'Stuff.'
+  github:    https://github.com/openafox/epma_thins
+
 baseurl: ""
 url: http://openafox.com
 logo: '/public/logo.png'
 
 # Site configurations
+plugins:
+  - jekyll-paginate
 markdown: kramdown
 kramdown:
   input: GFM
@@ -15,22 +26,27 @@ excerpt_separator: "<!-- more -->"
 sass:
   style: compressed
   sass_dir: _scss    
+paginate: 5
+paginate_path: '/blog/page:num'
+permalink: none #/:categories/:title.html
 
 version: 1.0.0
 
-# About/contact
-author: 
-  name: Austin Fox
-  description: Standing on the shoulders of <strong>Giants</strong>.
-  gravatar: 8380dfa3bae72c296b4098892df3c1a0 # md5 hash of your email address
-  contact:
-    linkedin:  https://www.linkedin.com/in/openafox
-    github:    https://github.com/openafox
-    # facebook:  <hide>
-    twitter:   https://twitter.com/openafox
-    email:     http://www.google.com/recaptcha/mailhide/d?k=01R_KcJmw1m4CpWB7RFMDeyw==&c=-4SUGKEgVtUwsRiJZzs51mK9wLOGsnef-19VxMpDWdM= #https://www.google.com/recaptcha/admin#mailhide
+# Navigation (2nd level links supported)
+nav:
+  Home:           
+    - '/epma_thins'
+  Info:           
+    - '/blog/'
+    - { Categories: '/blog/categories' }
+    - { Tags: '/blog/tags' }
+
+# Where are tags and categories displayed
+tag_page: '/blog/tags'
+category_page: '/blog/categories'
 
 # Puglins
 mathjax: true # whether support mathjax
 google_analytics_token:  # leave blank if you don't want google analytics
 disqus_short_name: openafox # leave blank if you don't want disqus
+
