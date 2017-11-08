@@ -12,8 +12,8 @@ project:
   description: 'Stuff.'
   github:    https://github.com/openafox/epma_thins
 
-baseurl: "/epma_thins"
-url: http://openafox.com
+baseurl: ""
+url: http://openafox.com/epma_thins
 logo: '/public/logo.png'
 
 # Site configurations
