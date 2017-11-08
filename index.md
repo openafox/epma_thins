@@ -17,6 +17,6 @@ Some of the math has been checked from the initial publications (see the Math ca
 
   <div class="tags-expo-list" style="text-align: center;">
     {% for tag in site.categories %}
-    <a href="/blog/categories#{{ tag[0] | slugify }}" class="post-tag">{{ tag[0] }}</a>
+    <a href="{{ site.baseurl }}/blog/categories#{{ tag[0] | slugify }}" class="post-tag">{{ tag[0] }}</a>
     {% endfor %}
   </div>
