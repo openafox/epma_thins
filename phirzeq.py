@@ -9,29 +9,7 @@ program completed 4/87  by richard a. waldo
 
 updated 10/88 for Bastin's nbs workshop model (1988), r.a. waldo
 NOTE: see also Scanning vol.12, 1990. p.225
-
-
-
-[1]    G. F. Bastin and H. J. M. Heijligers, “Quantitative Electron Probe
-    Microanalysis of Ultralight Elements(Boron-Oxygen),” SCANNING, vol. 12,
-    pp. 225–236, 1990.
-
-    Is this the same thing?  We shall see this is def the 88' papaer
-
-Bastin, G. & Heijligers, J. in Electron Probe Quantitation, Workshop at the
-National Bureau of Standards, Gaithersburg, Maryland (eds Heinrich, K.
-& Newbury, D.) 145–161 (Plenum, 1991)
-
-
-[2]    G. F. Bastin, H. J. M. Heijligers, and F. J. J. V. Loo, “A Further
-    Improvement in the Gaussian ϕ (ϱ) Approach for Matrix Correction in
-    Quantitative Electron Probe Microanalysis,” Scanning, vol. 8, no. 2,
-    pp. 45–67, 1986.
-
-
-
-Keyword arguments:
-A -- apple
+From Refs [2] and [3] - need to add incode comments with p and e.
 """
 # Copyright 2015 Austin Fox
 # Program is distributed under the terms of the

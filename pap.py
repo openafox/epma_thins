@@ -2,9 +2,7 @@
 """
 Calculates x-ray intensities using PAP model.
 
-[1]J.L. Pouchou and F. Pichoir, "Quantitative analysis of homogeneous or
-stratified microvolumes applying the model 'PAP'"
-in Electron probe quantitation, Springer, 1991, pp. 31-75.
+Ref [1] see openafox.com/epma_thins/refs
 
 Vars of note:
 c1 --  ??  weight concentration of analyzed element
@@ -96,7 +94,7 @@ def decel_pap(samp, el_p, line=None):
         t_k = 1.0 + p_k[k] - mparam
         # [1]p36e11   (1/S)*qe [1]p36e13
         df += ((u0/(v0 * mavg)) *
-               (d_k[k]*(v0/u0)**(p_k[k]) * 
+               (d_k[k]*(v0/u0)**(p_k[k]) *
                (t_k * u0**t_k * np.log(u0) - u0**t_k + 1.0) /t_k**2)/qe)
     return df
 
