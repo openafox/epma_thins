@@ -18,8 +18,10 @@ Arguments:
 
     mac -- Mass Absorption Coeficient
     absionrt -- Ionizations/Absorptions
-    
+
     arfc - erfc  - imported from scipy special
+    ei - exponential integral ei(x)
+    eidp - Exponential Integral, Double Precision
 
     From bastbeta
     a --
@@ -46,7 +48,7 @@ Arguments:
     rx --
     cnc -- list of weight fractions
     adelta -- layer thicknesses
-    flmdepth -- depth to surface of 
+    flmdepth -- depth to surface of
     ad --
     c1 --
 
