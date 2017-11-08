@@ -12,7 +12,7 @@ project:
   description: 'Stuff.'
   github:    https://github.com/openafox/epma_thins
 
-baseurl: ""
+baseurl: "/epma_thins"
 url: http://openafox.com
 logo: '/public/logo.png'
 
