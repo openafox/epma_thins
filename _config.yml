@@ -1,20 +1,20 @@
-# Site Info
-title: Openafox
-tagline: "Austin Fox's personal website."
-description: 'A place for Austin to collect his thoughts and share them with the world.'
+# Head Info
+head:
+  title: Openafox
+  tagline: "Austin Fox's personal website."
+  description: 'A place for Austin to collect his thoughts and share them with the world.'
+  headurl: http://openafox.com: 
+  logo: '/public/logo.png'
 
-# Sub Site Info
-project:
-  url: http://openafox.com/epma_thins
-  logo: ''
-  title: EPMA Thin Film Analysis
-  tagline: "Project site for epma_thins"
-  description: 'Stuff.'
-  github:    https://github.com/openafox/epma_thins
+# Site Info
+logo: ''
+title: EPMA Thin Film Analysis
+tagline: "Project site for epma_thins"
+description: 'Stuff.'
+github:    https://github.com/openafox/epma_thins
 
 baseurl: "/epma_thins"
 url: http://openafox.com/epma_thins
-logo: '/public/logo.png'
 
 # Site configurations
 plugins:
