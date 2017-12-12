@@ -40,6 +40,8 @@ nav:
     - '/blog/'
     - { Categories: '/blog/categories' }
     - { Tags: '/blog/tags' }
+  Other GitHub Project Pages:          
+    - 'http://openafox.com/projects'
 
 # Where are tags and categories displayed
 tag_page: '/blog/tags'
