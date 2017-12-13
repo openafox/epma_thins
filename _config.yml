@@ -16,6 +16,9 @@ github:    https://github.com/openafox/epma_thins
 baseurl: "/epma_thins"
 url: http://openafox.com/epma_thins
 
+#Images
+images: "/put_app/resources/img"
+
 # Site configurations
 plugins:
   - jekyll-paginate
@@ -49,6 +52,6 @@ category_page: '/blog/categories'
 
 # Puglins
 mathjax: true # whether support mathjax
-google_analytics_token:  # leave blank if you don't want google analytics
+google_analytics_token: UA-111193604-1 # leave blank if you don't want google analytics
 disqus_short_name: openafox # leave blank if you don't want disqus
 
