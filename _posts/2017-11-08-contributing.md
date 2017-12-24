@@ -16,7 +16,7 @@ I have been trying to follow Python's PEP-8 closely and write really good doc st
 
 PR's are great and if you wanted to go at it I am willing to make you a manager.
 
-Current things I am working on and other notes can be found in the [work log](/epma_thins/log).
+Current things I am working on and other notes can be found in the [work log]({{site.baseurl}}/info/log).
 
 Thank you!
 
