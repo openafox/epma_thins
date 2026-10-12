@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use epma_thins in your work, please cite it as below."
+title: "epma_thins: thin-film and multilayer quantification for electron probe microanalysis"
+authors:
+  - family-names: Fox
+    given-names: Austin
+    email: openafox@gmail.com
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/openafox/epma_thins"
+version: 0.1.0.dev0
+type: software

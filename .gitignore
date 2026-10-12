@@ -52,3 +52,16 @@ dist
 ##########
 *.for
 *.dat
+
+# Reference library (copyrighted papers / third-party data) #
+#############################################################
+references/**
+!references/README.md
+
+# Python env / tooling #
+########################
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
