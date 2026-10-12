@@ -103,3 +103,21 @@ formula but returns wrong values).
 ### Status
 - M0 done on branch `rebuild`: package skeleton, `data/` (elements, lines, MACs via xraylib with
   overrides), `sample.py` (Layer/Sample/Measurement), tests, CI, LICENSE, CITATION.cff.
+- M1 done (2026-10-12): MAC30 (ported from NIST EPQ, public domain) and the PAP91 Appendix 5
+  MAC set; bulk PAP φ(ρz) (`models/pap.py`); bulk k-ratios (`kratio.py`). Reproduces every
+  intermediate of F1 and the F2 CalcZAF-PAP k-ratios within 0.001.
+- Remaining M1 gap: PAP Appendix 3 exponential forms for U0 very close to 1 (raise
+  NotImplementedError today). Formulas need reading from the page image (PDF p32).
+
+### Findings along the way
+- PAP91 eq 21 as printed has a sign error in F2 (`+2/χ²`); NIST EPQ notes the same. Our code
+  integrates the parabolas directly and is checked against quadrature.
+- PAP91 eq 13 for F is misprinted; F = (R/S)/Q(E0) (also noted by Moy21a and EPQ).
+- PAP91 Appendix 5: Au Mβ in Pt is printed 2550; EPQ's table has 2250.
+- MAC30 is negative for B Kα in Zr (why GMRFilm hard-coded 8270 and PAP tabulated 4400).
+- The parabolic solution needs Appendix 3 below U0 ≈ 1.5, and also when the root Rc falls
+  outside (Rm, Rx), not only when d < 0. EPQ only asserts on that case.
+- GMRFilm's Ti Kα k-ratio for Al-Ti at 7 kV (0.503 in Moy21a Table 1) is an outlier; PAP via
+  CalcZAF and this code give 0.561.
+- PAP91 Appendix 6 (826 binary k-ratios) is a large bulk regression set, but the scan's text
+  layer is noisy; it needs careful transcription from page images.
