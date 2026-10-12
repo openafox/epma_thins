@@ -41,6 +41,12 @@ _SIEGBAHN = {
 }
 # Composite lines whose initial vacancy is not in the first characters of the IUPAC name
 _COMPOSITE_SHELL = {"Ka": "K", "Kb": "K", "La": "L3", "Lb": "L2"}
+# Siegbahn family of IUPAC transitions (Siegbahn names map by dropping the index digit)
+_IUPAC_FAMILY = {
+    "K-L2": "Ka", "K-L3": "Ka", "K-M2": "Kb", "K-M3": "Kb",
+    "L3-M4": "La", "L3-M5": "La", "L2-M4": "Lb", "L3-N5": "Lb", "L1-M2": "Lb", "L1-M3": "Lb",
+    "M5-N6": "Ma", "M5-N7": "Ma", "M4-N6": "Mb", "M3-N5": "Mg",
+}
 
 
 def _normalize(line: str) -> tuple[str, str, str]:
@@ -79,6 +85,13 @@ class XrayLine:
     def shell(self) -> str:
         """Shell whose ionization produces the line (e.g. 'K', 'L3')."""
         return _normalize(self.line)[1]
+
+    @property
+    def family(self) -> str:
+        """Siegbahn family, e.g. 'Ka' for Ka1, Ka2 and K-L3; used to match tabulated data."""
+        if "-" in self.line:
+            return _IUPAC_FAMILY.get(self.line, self.line)
+        return self.line.rstrip("0123456789")
 
     @cached_property
     def energy(self) -> float:

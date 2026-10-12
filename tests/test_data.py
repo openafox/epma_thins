@@ -61,3 +61,37 @@ def test_mac_override_and_mixture():
     assert mac(al, "Al") == XraylibMac()(al, "Al")
     mix = mixture_mac(mac, al, {"Al": 0.398, "Ti": 0.602})
     assert mix == pytest.approx(0.398 * mac(al, "Al") + 0.602 * 2201.0)
+
+
+@pytest.mark.parametrize(
+    "element, line, family",
+    [("Cu", "Ka1", "Ka"), ("Cu", "Ka", "Ka"), ("Cu", "K-L3", "Ka"), ("Fe", "La1", "La"),
+     ("Au", "Ma", "Ma"), ("Au", "M4-N6", "Mb"), ("Cu", "Lb1", "Lb")],
+)
+def test_line_family(element, line, family):
+    assert XrayLine(element, line).family == family
+
+
+def test_override_by_family_and_exact_precedence():
+    mac = OverriddenMac(XraylibMac(), {(("Fe", "La"), "Fe"): 3350.0,
+                                       (XrayLine("Fe", "La2"), "Fe"): 1.0})
+    assert mac(XrayLine("Fe", "La1"), "Fe") == 3350.0
+    assert mac(XrayLine("Fe", "La2"), "Fe") == 1.0
+    assert mac(XrayLine("Fe", "Ka1"), "Fe") == XraylibMac()(XrayLine("Fe", "Ka1"), "Fe")
+
+
+def test_pap91_mac_set():
+    from epma_thins.data.mac import pap91_mac
+    from epma_thins.data.mac30 import Mac30
+
+    mac = pap91_mac()
+    # [PAP91]p63 Appendix 5 values
+    assert mac(XrayLine("B", "Ka"), "Zr") == 4400  # MAC30 itself fails here
+    assert mac(XrayLine("C", "Ka"), "C") == 2170
+    assert mac(XrayLine("N", "Ka"), "Ti") == 4270
+    assert mac(XrayLine("Fe", "La1"), "Fe") == 3350
+    assert mac(XrayLine("Si", "Ka1"), "Ta") == 1490
+    assert mac(XrayLine("Au", "Mb"), "Pt") == 2550
+    # everything else is MAC30
+    al_ka = XrayLine("Al", "Ka1")
+    assert mac(al_ka, "Ti") == Mac30()(al_ka, "Ti")
