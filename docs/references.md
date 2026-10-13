@@ -2,7 +2,9 @@
 
 Local library of papers and datasets cited in the code and docs.
 
-**PDFs and third-party data files are git-ignored** (copyright). Only this index is committed.
+The PDFs and third-party data live in `references/` (git-ignored here), which is its own private
+repository, `openafox/epma_thins-references` (copyright: not for public distribution).
+To get them: `git clone git@github.com:openafox/epma_thins-references.git references`.
 
 Files are named `KEY_short-title.pdf`, so a citation `[KEY]` maps directly to a file. Variant scans
 add a suffix (`_v2`, `_scan2`).
@@ -26,7 +28,7 @@ DOIs on ⬜ items were written from memory and are unverified.
 | PP93 | Pouchou J-L & Pichoir F (1993). EPMA applied to thin surface films and stratified specimens. *Scanning Microsc Suppl* 7, 167–189. (modified PAP) | ⬜ |
 | Pouchou02 | Pouchou J-L (2002). X-ray microanalysis of thin surface films and coatings. *Mikrochim Acta* 138, 133–152. (Al/SiO₂ data) | ✅ |
 | Waldo88 | Waldo RA (1988). An iteration procedure to calculate film compositions and thicknesses in EPMA. *Microbeam Analysis*, 310–314. (GMRFilm; "RAW-MAS-88" in legacy code) | ✅ |
-| Waldo91 | Waldo RA (1991). A characteristic X-ray fluorescence correction for thin-film analysis by electron microprobe. *Microbeam Analysis*, 45–53. Needed for M4; print only. | ⬜ |
+| Waldo91 | Waldo RA (1991). A characteristic X-ray fluorescence correction for thin-film analysis by electron microprobe. *Microbeam Analysis 1991* (26th MAS conference), 45–53. 🔓 archive.org/details/1991-mas-proc-san-jose | ⬜ |
 | Waldo93 | Waldo RA et al. (1993). Quantitative thin-film analysis with an energy-dispersive X-ray detector. | ✅ |
 | Merlet93 | Merlet C (1993). Evaluation and description of a new correction procedure for quantitative EPMA (XPHI). | ✅ |
 | LlovetMerlet10 | Llovet X & Merlet C (2010). EPMA of thin films and multilayers using the computer program XFILM. *Microsc Microanal* 16, 21–32. | ✅ |
@@ -71,7 +73,7 @@ DOIs on ⬜ items were written from memory and are unverified.
 | SachsRichardson53 | Sachs & Richardson (1953). Mean excitation potentials. | ✅ |
 | BakkerSegre51 | Bakker & Segrè (1951). Stopping power and energy loss for ion pair production. | ✅ |
 | Bambynek72 | Bambynek W et al. (1972). X-ray fluorescence yields, Auger, and Coster–Kronig transition probabilities. *Rev Mod Phys* 44, 716. (two scans) | ✅ |
-| Heinrich87 | Heinrich KFJ (1987). Mass absorption coefficients for EPMA (MAC30). *Proc. 11th ICXOM*, Brown & Packwood (Eds.), Univ. Western Ontario, 67–119. OCLC 222411343. Requested via ILL. | ⬜ |
+| Heinrich87 | Heinrich KFJ (1987). Mass absorption coefficients for EPMA (MAC30). *Proc. 11th ICXOM*, Brown & Packwood (Eds.), Univ. Western Ontario, 67–119. OCLC 222411343. Interlibrary loan request pending. | ⬜ |
 | EPQ | NIST EPQ library (DTSA-II engine), public domain. github.com/usnistgov/EPQ — `MassAbsorptionCoefficient.java` (MAC30, PAP91 MACs), `PAP1991.java`, `XPP1991.java` | 🔓 |
 | PouchouHeijligers88 | Pouchou J-L & Heijligers HJM (1988). Determination of MACs for soft X-rays by use of the electron microprobe. | ✅ |
 | Kyser | Kyser DF. Experimental determination of MACs for soft X-rays. | ✅ |
@@ -104,8 +106,8 @@ DOIs on ⬜ items were written from memory and are unverified.
 | Pidun00 | Pidun M et al. (2000). Comparative analysis of a solar control coating on glass by AES, EPMA, SNMS… | ✅ |
 | Fournelle03 | Fournelle J (2003). Geology 777 course notes: thin film analysis. Univ. Wisconsin. | ✅ |
 
-## Datasets (`data/`)
+## Datasets (`references/data/`)
 
 | File | Source | Notes |
 |---|---|---|
-| `data/Pouchou02_Al-on-SiO2_kratios_from-BadgerFilm.xlsx` | github.com/Aurelien354/BadgerFilm (UW research/edu terms) | Pouchou02 Al film on SiO₂; Al/Si/O Kα k-ratios at 5–30 kV; stds Al, Si, Y₃Fe₅O₁₂. File says TOA 40°, Moy21b text says 35° — check Pouchou02. |
+| `references/data/Pouchou02_Al-on-SiO2_kratios_from-BadgerFilm.xlsx` | github.com/Aurelien354/BadgerFilm (UW research/edu terms) | Pouchou02 Al film on SiO₂; Al/Si/O Kα k-ratios at 5–30 kV; stds Al, Si, Y₃Fe₅O₁₂. File says TOA 40°, Moy21b text says 35° — check Pouchou02. |

@@ -3,7 +3,7 @@
 Help making this a functional tool for EPMA thin-film analysis is very welcome.
 
 - **Cite your equations.** Physics code must cite its source in a comment using the keys in
-  [references/README.md](references/README.md), formatted `[KEY]p{page}e{eq}`, e.g. `[PAP91]p54e39`.
+  [docs/references.md](docs/references.md), formatted `[KEY]p{page}e{eq}`, e.g. `[PAP91]p54e39`.
 - **Test against published numbers.** New models or corrections need tests reproducing values
   from the literature, with the source cited in the test.
 - **Write from the literature, not from other programs' source.** Do not copy code from
