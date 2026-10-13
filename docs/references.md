@@ -28,7 +28,8 @@ DOIs on ⬜ items were written from memory and are unverified.
 | PP93 | Pouchou J-L & Pichoir F (1993). EPMA applied to thin surface films and stratified specimens. *Scanning Microsc Suppl* 7, 167–189. (modified PAP) | ⬜ |
 | Pouchou02 | Pouchou J-L (2002). X-ray microanalysis of thin surface films and coatings. *Mikrochim Acta* 138, 133–152. (Al/SiO₂ data) | ✅ |
 | Waldo88 | Waldo RA (1988). An iteration procedure to calculate film compositions and thicknesses in EPMA. *Microbeam Analysis*, 310–314. (GMRFilm; "RAW-MAS-88" in legacy code) | ✅ |
-| Waldo91 | Waldo RA (1991). A characteristic X-ray fluorescence correction for thin-film analysis by electron microprobe. *Microbeam Analysis 1991* (26th MAS conference), 45–53. 🔓 archive.org/details/1991-mas-proc-san-jose | ⬜ |
+| Waldo91 | Waldo RA (1991). A characteristic X-ray fluorescence correction for thin-film analysis by electron microprobe. *Microbeam Analysis 1991* (26th MAS conference), 45–53. In `MAS91`. | ✅ |
+| MAS91 | *Microbeam Analysis 1991*: Proceedings of the 26th Annual Conference of the Microbeam Analysis Society, San Jose (whole volume, 600 pp.). 🔓 archive.org/details/1991-mas-proc-san-jose (all MAS proceedings 1966–1992 are on archive.org) | ✅ |
 | Waldo93 | Waldo RA et al. (1993). Quantitative thin-film analysis with an energy-dispersive X-ray detector. | ✅ |
 | Merlet93 | Merlet C (1993). Evaluation and description of a new correction procedure for quantitative EPMA (XPHI). | ✅ |
 | LlovetMerlet10 | Llovet X & Merlet C (2010). EPMA of thin films and multilayers using the computer program XFILM. *Microsc Microanal* 16, 21–32. | ✅ |
